@@ -1,0 +1,11 @@
+{
+  "name": "yes2games",
+  "owner": { "name": "Yes2Games", "email": "dev@yes2games.com" },
+  "plugins": [
+    {
+      "name": "yes2sdk",
+      "source": "./",
+      "description": "Yes2SDK integration helpers (MCP + slash commands)."
+    }
+  ]
+}
