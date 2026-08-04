@@ -29,7 +29,9 @@ function readJson(rel) {
 /** Extract the leading `---` YAML frontmatter block as raw text, or null. */
 function frontmatter(absFile) {
   const src = fs.readFileSync(absFile, "utf-8");
-  const m = /^---\n([\s\S]*?)\n---/.exec(src);
+  // `\r?\n` so a CRLF working tree (Git for Windows defaults to core.autocrlf=true)
+  // still matches. .gitattributes pins LF, but don't depend on the checkout.
+  const m = /^---\r?\n([\s\S]*?)\r?\n---/.exec(src);
   return m ? m[1] : null;
 }
 const hasKey = (fm, key) => new RegExp(`^${key}\\s*:`, "m").test(fm);
