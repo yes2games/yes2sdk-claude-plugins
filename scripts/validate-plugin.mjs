@@ -44,6 +44,25 @@ if (plugin) {
   }
 }
 
+// 1b. package.json is optional (this is a plugin, not an npm package) but if it is
+// present it duplicates version/license, so pin the two together rather than letting
+// them drift. It must also stay private — nothing here is publishable.
+if (fs.existsSync(path.join(ROOT, "package.json"))) {
+  const pkg = readJson("package.json");
+  if (pkg && plugin) {
+    if (pkg.private !== true) fail('package.json: must set "private": true');
+    for (const k of ["version", "license"]) {
+      if (!pkg[k]) fail(`package.json: missing "${k}"`);
+    }
+    if (pkg.version && pkg.version !== plugin.version) {
+      fail(`package.json "version" (${pkg.version}) must equal .claude-plugin/plugin.json "version" (${plugin.version})`);
+    }
+    if (plugin.license && pkg.license && pkg.license !== plugin.license) {
+      fail(`package.json "license" (${pkg.license}) must equal .claude-plugin/plugin.json "license" (${plugin.license})`);
+    }
+  }
+}
+
 // 2. marketplace.json — must list the plugin
 const market = readJson(".claude-plugin/marketplace.json");
 if (market) {
