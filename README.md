@@ -44,3 +44,7 @@ lives in the MCP, not here.
 the MCP locally instead, register your local server (e.g.
 `http://127.0.0.1:8091/mcp`) in your own MCP config; the slash commands work
 against any server named `yes2sdk`.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

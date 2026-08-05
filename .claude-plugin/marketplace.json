@@ -1,6 +1,6 @@
 {
   "name": "yes2games",
-  "owner": { "name": "Yes2Games", "email": "dev@yes2games.com" },
+  "owner": { "name": "Yes2Games", "email": "developer.support@yes2games.com" },
   "plugins": [
     {
       "name": "yes2sdk",
