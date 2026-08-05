@@ -2,7 +2,7 @@
   "name": "yes2sdk",
   "version": "0.1.0",
   "description": "Yes2SDK integration helpers for Claude Code — auto-registers the Yes2SDK MCP and adds integrate/verify slash commands.",
-  "author": { "name": "Yes2Games", "email": "dev@yes2games.com" },
+  "author": { "name": "Yes2Games", "email": "developer.support@yes2games.com" },
   "license": "MIT",
   "homepage": "https://developer.yes2games.com",
   "repository": "https://github.com/yes2games/yes2sdk-claude-plugins"
