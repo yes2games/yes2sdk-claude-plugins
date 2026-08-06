@@ -1,6 +1,8 @@
 # Yes2SDK — Claude Code plugin
 
-One-step access to the [Yes2SDK](https://yes2games.com) MCP from Claude Code, plus
+One integration ships your HTML5 game to Poki, CrazyGames, Yandex, GameDistribution, and YouTube Playables. One-step setup for Claude Code.
+
+One-step access to the [Yes2SDK](https://developer.yes2games.com) MCP from Claude Code, plus
 integrate/verify slash commands. Installing the plugin auto-registers the hosted
 Yes2SDK MCP — no local server to build or run.
 
