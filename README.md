@@ -42,6 +42,20 @@ The plugin is a thin wrapper. Slash commands call MCP tools (`search_docs`,
 `get_quickstart`, `get_api_reference`, `validate_integration`); compliance logic
 lives in the MCP, not here.
 
+### MCP server version
+
+This plugin is built against `yes2sdk` MCP server **0.3.0** and expects
+`>=0.3.0 <1.0.0` — recorded in `.claude-plugin/plugin.json` under
+`metadata.mcpServer`. The hosted server is upgraded in place, so no action is
+normally needed, and the plugin does not check the range at runtime.
+
+You notice a mismatch as a symptom, not a version number: a `/verify-*` or
+`/integrate-all` run fails because an MCP tool is missing or its arguments were
+rejected. Update the plugin first (`/plugin update yes2sdk@yes2games`). If it
+still fails, file an issue at
+https://github.com/yes2games/yes2sdk-claude-plugins/issues with the failing
+command and the error text.
+
 `.mcp.json` points at the hosted HTTP endpoint for zero-install. If you are running
 the MCP locally instead, register your local server (e.g.
 `http://127.0.0.1:8091/mcp`) in your own MCP config; the slash commands work

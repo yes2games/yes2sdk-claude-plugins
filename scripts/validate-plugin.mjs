@@ -78,6 +78,13 @@ if (market) {
     if (plugin && !market.plugins.some((p) => p.name === plugin.name)) {
       fail(`.claude-plugin/marketplace.json: no plugin entry named "${plugin.name}"`);
     }
+    // The entry may carry its own "version"; the spec lets it, and Claude Code shows it
+    // in the marketplace listing. Pin it to plugin.json so a release bump cannot leave
+    // the listing advertising a version the plugin no longer is.
+    const entry = plugin && market.plugins.find((p) => p.name === plugin.name);
+    if (entry?.version && plugin.version && entry.version !== plugin.version) {
+      fail(`.claude-plugin/marketplace.json plugin "${plugin.name}" "version" (${entry.version}) must equal .claude-plugin/plugin.json "version" (${plugin.version})`);
+    }
   }
 }
 
