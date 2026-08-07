@@ -12,5 +12,33 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+
       - name: Validate plugin structure
         run: node scripts/validate-plugin.mjs
+
+      # Pinned on purpose: an unpinned install lets an upstream CLI release turn this
+      # job red with no change in this repo. Bump it deliberately, with the new
+      # validator output read first.
+      - name: Install the Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code@2.1.224
+
+      # A missing or broken binary must FAIL the job, never silently skip the two
+      # gates below. `claude plugin validate` needs no login — it reads the manifests
+      # off disk.
+      - name: Confirm the official validator is present
+        run: |
+          command -v claude
+          claude --version
+
+      # Two invocations are required. The directory form validates ONLY the
+      # marketplace manifest when .claude-plugin/marketplace.json exists; the plugin
+      # manifest, commands, skills and agents are reached only via the plugin.json
+      # form. --strict turns warnings into failures.
+      - name: Validate marketplace manifest (strict)
+        run: claude plugin validate ./ --strict
+
+      # Note: this gate also fails on a CLAUDE.md or CLAUDE.local.md at the plugin
+      # root — neither is loaded as project context from there. Repo instructions
+      # belong in .claude/rules/*.md.
+      - name: Validate plugin manifest, commands, skills and agents (strict)
+        run: claude plugin validate .claude-plugin/plugin.json --strict

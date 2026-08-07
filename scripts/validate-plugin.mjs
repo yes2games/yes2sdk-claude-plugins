@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // Structural validation for the Yes2SDK Claude Code plugin.
-// Dependency-free: parses the JSON manifests and checks that every command and
-// skill carries the frontmatter Claude Code requires. Fails (exit 1) on any
-// problem so a broken manifest can't land — there is no build step to catch it.
+// Dependency-free. Deliberately covers only what `claude plugin validate --strict`
+// does NOT: cross-file agreement between the manifests, `.mcp.json` shape, SKILL.md
+// `name`, and the agent-frontmatter traps the official validator passes with exit 0.
+// CI runs both, so anything the official validator already catches is not repeated
+// here. Fails (exit 1) on any problem — there is no build step to catch it later.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -99,18 +101,14 @@ if (mcp) {
   }
 }
 
-// 4. every command has a description frontmatter
+// 4. commands/ must exist and hold something. Per-file `description` is NOT checked
+// here: `claude plugin validate .claude-plugin/plugin.json --strict` already fails on a
+// command with no description, and CI runs it. This is the one check that overlapped.
 const cmdDir = path.join(ROOT, "commands");
 if (!fs.existsSync(cmdDir)) {
   fail("missing commands/ directory");
-} else {
-  const cmds = fs.readdirSync(cmdDir).filter((f) => f.endsWith(".md"));
-  if (cmds.length === 0) fail("commands/ has no .md files");
-  for (const f of cmds) {
-    const fm = frontmatter(path.join(cmdDir, f));
-    if (!fm) fail(`commands/${f}: missing --- frontmatter ---`);
-    else if (!hasKey(fm, "description")) fail(`commands/${f}: frontmatter missing "description"`);
-  }
+} else if (fs.readdirSync(cmdDir).filter((f) => f.endsWith(".md")).length === 0) {
+  fail("commands/ has no .md files");
 }
 
 // 5. every skill has name + description frontmatter
@@ -131,9 +129,50 @@ if (fs.existsSync(skillsDir)) {
   }
 }
 
+// 6. agents — everything here is a documented blind spot of the official validator.
+// Measured on Claude Code 2.1.224: a fixture with `name: bad:name` passes
+// `claude plugin validate .claude-plugin/plugin.json --strict` with exit 0, while the
+// agent silently never loads. This block is why the script stays.
+const agentsDir = path.join(ROOT, "agents");
+if (fs.existsSync(agentsDir)) {
+  const agents = fs.readdirSync(agentsDir).filter((f) => f.endsWith(".md"));
+  if (agents.length === 0) fail("agents/ exists but has no .md files");
+  for (const f of agents) {
+    const fm = frontmatter(path.join(agentsDir, f));
+    if (!fm) {
+      fail(`agents/${f}: missing --- frontmatter ---`);
+      continue;
+    }
+    if (!hasKey(fm, "description")) fail(`agents/${f}: frontmatter missing "description"`);
+    // `[ \t]` not `\s`, or a bare `name:` swallows the following line and the error then
+    // blames a colon that lives in some other key.
+    const name = /^name[ \t]*:[ \t]*([^\r\n]*)/m
+      .exec(fm)?.[1]
+      .trim()
+      .replace(/^["']|["']$/g, "")
+      .trim();
+    // A present-but-empty `name` is the same silent non-load as a missing one, and
+    // --strict passes it, so check the value and not just the key.
+    if (!name) {
+      fail(`agents/${f}: frontmatter "name" is missing or empty`);
+    } else if (name.includes(":")) {
+      // `:` is reserved for plugin scoping (the UI shows `plugin-name:agent-name`), so an
+      // agent whose own name contains one does not load at all.
+      fail(`agents/${f}: "name" must not contain ":" — it is reserved for plugin scoping and the agent silently does not load (got "${name}")`);
+    }
+    // Silently ignored for plugin-shipped agents, for security. An agent relying on one
+    // of these looks correct and does nothing.
+    for (const k of ["hooks", "mcpServers", "permissionMode"]) {
+      if (hasKey(fm, k)) {
+        fail(`agents/${f}: "${k}" is silently ignored for plugin-shipped agents — remove it`);
+      }
+    }
+  }
+}
+
 if (errors.length) {
   console.error(`Plugin validation failed (${errors.length}):`);
   for (const e of errors) console.error(`  - ${e}`);
   process.exit(1);
 }
-console.log("Plugin validation passed: manifests parse, commands and skills have required frontmatter.");
+console.log("Plugin validation passed: manifests agree, skills and agents have required frontmatter.");
