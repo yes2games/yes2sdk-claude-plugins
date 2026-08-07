@@ -20,10 +20,11 @@ procedure here, not in the commands.
    empty, ask once, then reuse the same build for every platform in this run.
 2. Supply that build to the tool the way the connected server can actually read
    it. The plugin registers the **hosted** server, and it has no disk access, so
-   `buildPath` is silently useless there — read the build locally and pass it
-   inline as `indexHtml`, `fileList` and `jsContents`. `jsContents` is what makes
-   the Yes2SDK-bundling check possible; without it that check cannot run. Pass
-   `buildPath` only when the user has a local stdio server registered instead.
+   `buildPath` there comes back as a blocking `build-path` FAIL — read the build
+   locally and pass it inline as `indexHtml`, `fileList` and `jsContents`.
+   `jsContents` is what makes the Yes2SDK-bundling check possible; without it that
+   check cannot run. Pass `buildPath` only when the user has the server running on
+   their own machine.
 3. An Inspector event log may be passed as `eventLogJson`, in addition to or
    instead of the build. The static checks need the build; the behavioral rules
    (gameplayStop before ads, reward only on `adViewed`, no ads in the first 30s)

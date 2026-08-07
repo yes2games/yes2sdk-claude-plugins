@@ -1,0 +1,5 @@
+# Personal working notes. Deliberately untracked — see README "Repo-local files".
+CLAUDE.local.md
+
+# Per-machine Claude Code settings (local hooks, permissions).
+.claude/settings.local.json
