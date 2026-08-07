@@ -1,17 +1,14 @@
 ---
-description: Validate the current build against YouTube Playables requirements (strictest certification).
+description: Validates a build against YouTube Playables' certification rules.
+argument-hint: [buildPath]
+allowed-tools:
+  - Skill
+  - Read
+  - Glob
+  - mcp__yes2sdk__validate_integration
 ---
 
-Call the `validate_integration` MCP tool (server: yes2sdk) with
-`platform: "youtube"`.
+Verify this build for YouTube Playables.
 
-- Pass the path to the user's extracted WebGL build as `buildPath`. Ask once if it
-  is unknown, then run.
-- An Inspector event log can be passed as `eventLogJson` for behavioral checks.
-
-Summarize blocking FAILs first, then WARNs, each with the fix hint from the
-finding. YouTube has the strictest, cert-mandatory checks; rejections usually
-trace to: `startGameAsync()` not gating `gameReady()` (called during loading),
-`pause` not stopping game loop/audio/network, audio not honored
-(`session.isAudioEnabled()` + `audioEnabledChange`), external scripts (CSP
-sandbox), or cloud saves over the 3 MiB cap.
+Invoke the `yes2sdk:yes2sdk-verify` skill and follow its procedure with
+`platform: "youtube"` and the build path `$ARGUMENTS` (empty means ask once).

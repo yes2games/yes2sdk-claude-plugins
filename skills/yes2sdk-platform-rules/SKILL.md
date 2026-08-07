@@ -1,6 +1,11 @@
 ---
 name: yes2sdk-platform-rules
-description: Use when integrating Yes2SDK or fixing platform-compliance issues for a Yes2SDK game (Poki, CrazyGames, Yandex, GameDistribution, YouTube). Carries the highest-leverage cross-platform gotchas and defers to the yes2sdk MCP for the authoritative rule set.
+description: Cross-platform Yes2SDK rules; the yes2sdk MCP is source of truth. Use when integrating Yes2SDK or fixing compliance for Poki, CrazyGames, Yandex, GameDistribution, YouTube.
+allowed-tools:
+  - mcp__yes2sdk__get_platform_requirements
+  - mcp__yes2sdk__get_quickstart
+  - mcp__yes2sdk__get_api_reference
+  - mcp__yes2sdk__validate_integration
 ---
 
 # Yes2SDK platform rules
@@ -29,10 +34,13 @@ rely on this list for compliance decisions.
 
 For the authoritative, current rule set, call the **yes2sdk MCP**:
 
-- `get_platform_requirements` (platform) — the full rule list with severities.
-- `validate_integration` (platform, buildPath and/or eventLogJson) — run the
-  actual checks against a build or Inspector log and surface FAILs.
-- `get_quickstart` (platform) / `get_api_reference` (module) — exact call
-  sequences and method signatures.
+- `yes2sdk:get_platform_requirements` (platform) — the full rule list with
+  severities.
+- `yes2sdk:validate_integration` (platform, plus the build inline and/or an
+  Inspector `eventLogJson`) — run the actual checks and surface FAILs. The
+  `yes2sdk-verify` skill holds the calling procedure; use it rather than guessing
+  which build parameters the connected server can read.
+- `yes2sdk:get_quickstart` (platform) / `yes2sdk:get_api_reference` (module) —
+  exact call sequences and method signatures.
 
 When in doubt, fetch from the MCP rather than guessing.
