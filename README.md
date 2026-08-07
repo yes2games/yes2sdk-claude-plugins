@@ -21,7 +21,7 @@ the server is connected.
 
 | Command | What it does |
 |---|---|
-| `/integrate-all [platform]` | Scaffold the unified init + ad loop with `isSupported()` guards, portable across all 5 platforms. |
+| `/integrate-all [platform]` | Detect the engine, check the SDK is installed, then scaffold the unified init + ad loop with `isSupported()` guards, portable across all 5 platforms. |
 | `/verify-all [buildPath]` | Run `yes2sdk:validate_integration` against all 5 platforms; one pass/fail table. |
 | `/verify-poki [buildPath]` | Poki compliance + static checks. |
 | `/verify-crazygames [buildPath]` | CrazyGames compliance + static checks. |
@@ -34,16 +34,67 @@ The `/verify-*` commands take the path to your extracted WebGL build — pass it
 inline (`/verify-poki ./build/webgl`) or leave it off and they ask once. An
 Inspector event log can be supplied for behavioral checks.
 
-The plugin also bundles two skills: `yes2sdk-platform-rules`, which carries the
-cross-platform gotchas and points Claude at the MCP for the authoritative rule set,
-and `yes2sdk-verify`, the single source of the verify procedure that every
-`/verify-*` command runs.
+## Skills
+
+Skills fire on intent — you do not invoke them, you describe the problem.
+
+| Skill | Fires when |
+|---|---|
+| `yes2sdk-install` | Onboarding a project, or a Yes2SDK reference will not resolve or compile. Detects the engine and install state before any code is written. |
+| `yes2sdk-diagnose` | A symptom, a compliance FAIL you need to understand, or a "does this platform support X" question. |
+| `yes2sdk-platform-rules` | Any Yes2SDK integration or compliance work; carries the cross-platform gotchas and points at the MCP for the authoritative rule set. |
+| `yes2sdk-verify` | Invoked by the `/verify-*` commands — the single source of the verify procedure. |
+
+`yes2sdk-diagnose` keeps its full tool-routing map in
+`skills/yes2sdk-diagnose/references/tool-routing.md`, loaded only when needed.
+
+## Agent
+
+`yes2sdk-compliance-sweep` grades one build against all five platforms in its own
+context and returns a triaged verdict — findings grouped by cause, so one missing
+`gameplayStop()` reads as one fix rather than four failures. Ask for it by name:
+
+```
+Use the yes2sdk-compliance-sweep agent on ./build/webgl
+```
+
+Prefer `/verify-all` for a quick pass/fail table; prefer the agent before an upload,
+when you want the five reports triaged rather than printed.
+
+## MCP tool coverage
+
+All 11 `yes2sdk` MCP tools are reachable:
+
+| Tool | Fronted by |
+|---|---|
+| `detect_sdk` | `yes2sdk-install` skill, `/integrate-all` |
+| `get_install_instructions` | `yes2sdk-install` skill, `/integrate-all` |
+| `get_quickstart` | `/integrate-all`, `/yes2sdk-docs`, `yes2sdk-platform-rules` |
+| `get_api_reference` | `/integrate-all`, `/yes2sdk-docs`, `yes2sdk-platform-rules` |
+| `search_docs` | `/yes2sdk-docs` |
+| `get_platform_requirements` | `yes2sdk-platform-rules` |
+| `validate_integration` | all `/verify-*`, `/integrate-all`, `yes2sdk-verify`, `yes2sdk-compliance-sweep` |
+| `get_compliance_rule` | `yes2sdk-diagnose`, `yes2sdk-compliance-sweep` |
+| `troubleshoot` | `yes2sdk-diagnose` |
+| `get_platform_capabilities` | `yes2sdk-diagnose` |
+| `list_sdk_modules` | `yes2sdk-diagnose` |
+
+The server's MCP **prompts** (`integrate_module`, `setup_new_project`) and
+**resources** (`yes2sdk://modules`, `yes2sdk://docs/{module}`) are intentionally not
+fronted: they are already reachable directly through any MCP client, and wrapping a
+prompt in a prompt adds a layer without adding routing.
+
+The plugin ships **no hooks**, deliberately. A hook here would either re-run this
+repo's own validator (already covered by CI and a local hook, and of no use to
+someone who installed the plugin) or intercept the MCP calls the commands make
+explicitly — cost and noise on every matching tool call, for no compliance the
+commands do not already enforce.
 
 ## How it's wired
 
-The plugin is a thin wrapper. Slash commands call MCP tools
-(`yes2sdk:search_docs`, `yes2sdk:get_quickstart`, `yes2sdk:get_api_reference`,
-`yes2sdk:validate_integration`); compliance logic lives in the MCP, not here.
+The plugin is a thin wrapper. Every command, skill and agent routes to an MCP tool
+(see the coverage table above); compliance rules, docs and validation live in the
+MCP, not here.
 
 Each `/verify-*` command is a wrapper that names its platform and invokes the
 `yes2sdk-verify` skill, so the shared procedure and the per-platform rejection
