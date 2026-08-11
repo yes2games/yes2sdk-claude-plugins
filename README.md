@@ -21,26 +21,33 @@ the server is connected.
 
 | Command | What it does |
 |---|---|
-| `/integrate-all` | Scaffold the unified init + ad loop with `isSupported()` guards, portable across all 5 platforms. |
-| `/verify-all` | Run `validate_integration` against all 5 platforms; one pass/fail table. |
-| `/verify-poki` | Poki compliance + static checks. |
-| `/verify-crazygames` | CrazyGames compliance + static checks. |
-| `/verify-yandex` | Yandex Games compliance + static checks. |
-| `/verify-gamedistribution` | GameDistribution compliance + static checks. |
-| `/verify-youtube` | YouTube Playables compliance + static checks (strictest). |
+| `/integrate-all [platform]` | Scaffold the unified init + ad loop with `isSupported()` guards, portable across all 5 platforms. |
+| `/verify-all [buildPath]` | Run `yes2sdk:validate_integration` against all 5 platforms; one pass/fail table. |
+| `/verify-poki [buildPath]` | Poki compliance + static checks. |
+| `/verify-crazygames [buildPath]` | CrazyGames compliance + static checks. |
+| `/verify-yandex [buildPath]` | Yandex Games compliance + static checks. |
+| `/verify-gamedistribution [buildPath]` | GameDistribution compliance + static checks. |
+| `/verify-youtube [buildPath]` | YouTube Playables compliance + static checks (strictest). |
 | `/yes2sdk-docs <query>` | Search the Yes2SDK docs. |
 
-The `/verify-*` commands take the path to your extracted WebGL build (they ask if
-unknown) and can also take an Inspector event log for behavioral checks.
+The `/verify-*` commands take the path to your extracted WebGL build — pass it
+inline (`/verify-poki ./build/webgl`) or leave it off and they ask once. An
+Inspector event log can be supplied for behavioral checks.
 
-The plugin also bundles a `yes2sdk-platform-rules` skill that carries the
-cross-platform gotchas and points Claude at the MCP for the authoritative rule set.
+The plugin also bundles two skills: `yes2sdk-platform-rules`, which carries the
+cross-platform gotchas and points Claude at the MCP for the authoritative rule set,
+and `yes2sdk-verify`, the single source of the verify procedure that every
+`/verify-*` command runs.
 
 ## How it's wired
 
-The plugin is a thin wrapper. Slash commands call MCP tools (`search_docs`,
-`get_quickstart`, `get_api_reference`, `validate_integration`); compliance logic
-lives in the MCP, not here.
+The plugin is a thin wrapper. Slash commands call MCP tools
+(`yes2sdk:search_docs`, `yes2sdk:get_quickstart`, `yes2sdk:get_api_reference`,
+`yes2sdk:validate_integration`); compliance logic lives in the MCP, not here.
+
+Each `/verify-*` command is a wrapper that names its platform and invokes the
+`yes2sdk-verify` skill, so the shared procedure and the per-platform rejection
+notes live in exactly one file.
 
 ### MCP server version
 
