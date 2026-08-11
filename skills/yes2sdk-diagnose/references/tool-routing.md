@@ -33,11 +33,12 @@ parameter list remembered from this page.
 
 `yes2sdk:detect_sdk` and `yes2sdk:validate_integration` each accept a disk path OR
 inline content. **This plugin registers the hosted server at
-`https://mcp.yes2games.com/mcp`, and it has no disk access.** The path arguments are
-not rejected — they simply cannot see anything, so the answer comes back thin
-instead of erroring. Read the files locally and pass them inline.
+`https://mcp.yes2games.com/mcp`, and it has no disk access.** The path arguments fail
+loudly there — `detect_sdk` returns an error result naming the cause, and
+`validate_integration` returns a blocking `build-path` FAIL. Read the files locally
+and pass them inline.
 
-| Tool | Hosted (this plugin) | Local stdio server only |
+| Tool | Hosted (this plugin) | Server on your own machine |
 | --- | --- | --- |
 | `yes2sdk:detect_sdk` | `files` — map of repo-relative path → contents | `projectPath` |
 | `yes2sdk:validate_integration` | `indexHtml`, `fileList`, `jsContents` | `buildPath` |

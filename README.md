@@ -3,8 +3,9 @@
 One integration ships your HTML5 game to Poki, CrazyGames, Yandex, GameDistribution, and YouTube Playables. One-step setup for Claude Code.
 
 One-step access to the [Yes2SDK](https://developer.yes2games.com) MCP from Claude Code, plus
-integrate/verify slash commands. Installing the plugin auto-registers the hosted
-Yes2SDK MCP — no local server to build or run.
+integrate/verify slash commands, skills that fire on intent, and a multi-platform
+compliance agent. Installing the plugin auto-registers the hosted Yes2SDK MCP — no local
+server to build or run.
 
 ## Install
 
@@ -14,10 +15,12 @@ Yes2SDK MCP — no local server to build or run.
 ```
 
 Installing registers the `yes2sdk` MCP server (remote HTTP,
-`https://mcp.yes2games.com/mcp`) and adds the commands below. Run `/mcp` to confirm
+`https://mcp.yes2games.com/mcp`) and adds the components below. Run `/mcp` to confirm
 the server is connected.
 
 ## Commands
+
+You type these.
 
 | Command | What it does |
 |---|---|
@@ -30,20 +33,27 @@ the server is connected.
 | `/verify-youtube [buildPath]` | YouTube Playables compliance + static checks (strictest). |
 | `/yes2sdk-docs <query>` | Search the Yes2SDK docs. |
 
+```
+/integrate-all poki
+/verify-youtube ./build/webgl
+/verify-all
+/yes2sdk-docs rewarded ad reward not granted
+```
+
 The `/verify-*` commands take the path to your extracted WebGL build — pass it
-inline (`/verify-poki ./build/webgl`) or leave it off and they ask once. An
-Inspector event log can be supplied for behavioral checks.
+inline or leave it off and they ask once. An Inspector event log can be supplied for
+behavioral checks.
 
 ## Skills
 
-Skills fire on intent — you do not invoke them, you describe the problem.
+You do not invoke these. Describe the problem and the matching skill fires.
 
-| Skill | Fires when |
-|---|---|
-| `yes2sdk-install` | Onboarding a project, or a Yes2SDK reference will not resolve or compile. Detects the engine and install state before any code is written. |
-| `yes2sdk-diagnose` | A symptom, a compliance FAIL you need to understand, or a "does this platform support X" question. |
-| `yes2sdk-platform-rules` | Any Yes2SDK integration or compliance work; carries the cross-platform gotchas and points at the MCP for the authoritative rule set. |
-| `yes2sdk-verify` | Invoked by the `/verify-*` commands — the single source of the verify procedure. |
+| Skill | Fires when | Say something like |
+|---|---|---|
+| `yes2sdk-install` | Onboarding a project, or a Yes2SDK reference will not resolve or compile. Detects the engine and install state before any code is written. | *"Set up Yes2SDK in this project."* |
+| `yes2sdk-diagnose` | A symptom, a compliance FAIL you need to understand, or a "does this platform support X" question. | *"Rewarded ad plays but the reward never lands."* |
+| `yes2sdk-platform-rules` | Any Yes2SDK integration or compliance work; carries the cross-platform gotchas and points at the MCP for the authoritative rule set. | *"What breaks if I ship this to Yandex and Poki?"* |
+| `yes2sdk-verify` | Invoked by the `/verify-*` commands — the single source of the verify procedure. | (invoked for you) |
 
 `yes2sdk-diagnose` keeps its full tool-routing map in
 `skills/yes2sdk-diagnose/references/tool-routing.md`, loaded only when needed.
@@ -73,7 +83,7 @@ All 11 `yes2sdk` MCP tools are reachable:
 | `get_api_reference` | `/integrate-all`, `/yes2sdk-docs`, `yes2sdk-platform-rules` |
 | `search_docs` | `/yes2sdk-docs` |
 | `get_platform_requirements` | `yes2sdk-platform-rules` |
-| `validate_integration` | all `/verify-*`, `/integrate-all`, `yes2sdk-verify`, `yes2sdk-compliance-sweep` |
+| `validate_integration` | all `/verify-*`, `/integrate-all`, `yes2sdk-verify`, `yes2sdk-platform-rules`, `yes2sdk-compliance-sweep` |
 | `get_compliance_rule` | `yes2sdk-diagnose`, `yes2sdk-compliance-sweep` |
 | `troubleshoot` | `yes2sdk-diagnose` |
 | `get_platform_capabilities` | `yes2sdk-diagnose` |
@@ -98,7 +108,8 @@ MCP, not here.
 
 Each `/verify-*` command is a wrapper that names its platform and invokes the
 `yes2sdk-verify` skill, so the shared procedure and the per-platform rejection
-notes live in exactly one file.
+notes live in exactly one file. Likewise `/integrate-all` and the compliance-sweep
+agent invoke `yes2sdk-install` and `yes2sdk-verify` rather than restating them.
 
 ### MCP server version
 
@@ -118,6 +129,46 @@ command and the error text.
 the MCP locally instead, register your local server (e.g.
 `http://127.0.0.1:8091/mcp`) in your own MCP config; the slash commands work
 against any server named `yes2sdk`.
+
+### Running the MCP on your own machine
+
+Two tools accept either a filesystem path or inline file contents. **The hosted
+server has no disk access**, so every component here passes contents inline —
+`detect_sdk` gets `files`, `validate_integration` gets
+`indexHtml`/`fileList`/`jsContents`.
+
+The path forms fail loudly against the hosted server rather than passing thinly:
+`detect_sdk` returns an error that names the cause, and `validate_integration`
+returns a blocking `build-path` FAIL. If you run the server on your own machine
+(stdio or local HTTP) the path forms work, but nothing in this plugin depends on
+them.
+
+## Contributing
+
+`scripts/validate-plugin.mjs` is the whole test surface — no framework, Node stdlib
+only. CI runs it plus both `claude plugin validate` forms:
+
+```bash
+node scripts/validate-plugin.mjs
+claude plugin validate ./ --strict                          # marketplace manifest only
+claude plugin validate .claude-plugin/plugin.json --strict   # plugin, commands, skills, agents
+claude --plugin-dir ./                                       # load without installing
+```
+
+Both `validate` invocations are needed. When `.claude-plugin/marketplace.json`
+exists, the directory form checks only that manifest — commands, skills and agents
+are reached solely through the plugin-manifest form.
+
+Authoring rules live in `.claude/rules/`: `plugin.md` (the thin-front-end rule and the
+validator gate), `commands.md` (command, skill and agent authoring), and
+`marketplace.md` (manifests, versioning, install path). They are tracked on purpose —
+they are the repo's conventions, not anyone's personal notes, and the alternative was
+every contributor rediscovering them. A `CLAUDE.local.md` at the root is gitignored and
+stays personal.
+
+Bumping the version means editing **three** files — `.claude-plugin/plugin.json`,
+`.claude-plugin/marketplace.json` and `package.json`. The validator fails if they
+disagree.
 
 ## License
 

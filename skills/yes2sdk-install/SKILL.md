@@ -33,8 +33,8 @@ first precondition.
 - `yes2sdk:detect_sdk` takes exactly one of two input modes, and the wrong one is
   the most common way this fails. This plugin registers the **hosted** server, which
   has no disk access — read the engine-marker files locally and pass them inline as
-  `files` (repo-relative path → contents). Pass `projectPath` only when the user has
-  a local stdio server registered instead.
+  `files` (repo-relative path → contents). `projectPath` there returns an error result,
+  not a thin answer; pass it only when the user runs the server on their own machine.
 - **Unity needs two markers, not one:** `Packages/manifest.json` *and* a
   `ProjectSettings/` file (`ProjectSettings/ProjectVersion.txt` will do). With only
   one, detection returns `Engine: unknown` and every downstream step is wrong.
