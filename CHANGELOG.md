@@ -4,6 +4,20 @@ All notable changes to this plugin. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `displayName` (`Yes2SDK`) in both manifests, so the plugin shows its product name
+  instead of the lowercase install id. Set before the first public listing, because
+  changing it later renames the plugin in every installed user's UI.
+
+### Changed
+
+- Command, agent, skill and README copy no longer state how many platforms Yes2SDK
+  supports. The explicit platform ids stay where they are the list a command iterates;
+  only the counts, which go stale silently as platforms are added, were removed.
+
 ## [0.2.0] — 2026-08-07
 
 First tagged release. Covers the full `yes2sdk` MCP tool surface and brings every

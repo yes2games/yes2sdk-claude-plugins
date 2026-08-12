@@ -24,8 +24,8 @@ You type these.
 
 | Command | What it does |
 |---|---|
-| `/integrate-all [platform]` | Detect the engine, check the SDK is installed, then scaffold the unified init + ad loop with `isSupported()` guards, portable across all 5 platforms. |
-| `/verify-all [buildPath]` | Run `yes2sdk:validate_integration` against all 5 platforms; one pass/fail table. |
+| `/integrate-all [platform]` | Detect the engine, check the SDK is installed, then scaffold the unified init + ad loop with `isSupported()` guards, portable across every supported platform. |
+| `/verify-all [buildPath]` | Run `yes2sdk:validate_integration` against every supported platform; one pass/fail table. |
 | `/verify-poki [buildPath]` | Poki compliance + static checks. |
 | `/verify-crazygames [buildPath]` | CrazyGames compliance + static checks. |
 | `/verify-yandex [buildPath]` | Yandex Games compliance + static checks. |
@@ -60,9 +60,10 @@ You do not invoke these. Describe the problem and the matching skill fires.
 
 ## Agent
 
-`yes2sdk-compliance-sweep` grades one build against all five platforms in its own
-context and returns a triaged verdict — findings grouped by cause, so one missing
-`gameplayStop()` reads as one fix rather than four failures. Ask for it by name:
+`yes2sdk-compliance-sweep` grades one build against every supported platform in its
+own context and returns a triaged verdict — findings grouped by cause, so one missing
+`gameplayStop()` reads as one fix rather than one failure per platform. Ask for it by
+name:
 
 ```
 Use the yes2sdk-compliance-sweep agent on ./build/webgl
