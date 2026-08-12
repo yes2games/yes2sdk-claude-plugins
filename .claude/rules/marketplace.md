@@ -10,13 +10,17 @@ The plugin's identity, MCP registration, versioning, and install path. Manifests
 
 ## Manifests (`.claude-plugin/`)
 
-- `plugin.json` — the identity Claude Code installs: `name` (`yes2sdk`), `version`,
-  `description`, `author`, `homepage`, `license`, `repository`, `keywords`, and
-  `metadata.mcpServer` (the MCP server version the plugin is built against).
+- `plugin.json` — the identity Claude Code installs: `name` (`yes2sdk`), `displayName`
+  (`Yes2SDK`), `version`, `description`, `author`, `homepage`, `license`, `repository`,
+  `keywords`, and `metadata.mcpServer` (the MCP server version the plugin is built
+  against).
 - `marketplace.json` — the marketplace manifest: a top-level `description` (its absence
   is the one thing `claude plugin validate ./ --strict` fails on), owner Yes2Games, and one
-  plugin entry with `name` (`yes2sdk`) and `source` (`./`). This is what
+  plugin entry with `name` (`yes2sdk`), `displayName` and `source` (`./`). This is what
   `/plugin marketplace add` reads.
+- **`displayName` is the shown name; `name` stays the install/invocation id.** It is set in
+  both manifests and must match. Treat it as frozen once the plugin is listed publicly —
+  changing it renames the plugin in every installed user's UI.
 - **`--strict` rejects unknown top-level `plugin.json` fields.** Anything not in
   https://code.claude.com/docs/en/plugins-reference goes under `metadata`, which is
   free-form and which Claude Code never reads.
