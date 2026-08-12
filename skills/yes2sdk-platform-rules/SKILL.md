@@ -10,7 +10,7 @@ allowed-tools:
 
 # Yes2SDK platform rules
 
-Yes2SDK is one unified API across all five platforms — write the integration once
+Yes2SDK is one unified API across every supported platform — write the integration once
 and gate platform-specific features with `isSupported()` so unsupported features
 no-op. Never call a platform SDK directly. Never invent SDK methods.
 

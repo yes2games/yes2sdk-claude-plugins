@@ -1,6 +1,6 @@
 ---
 name: yes2sdk-compliance-sweep
-description: Sweeps a Yes2SDK build against all five platforms and returns a triaged verdict. Use before an upload, or when a build must ship to more than one platform at once.
+description: Sweeps a Yes2SDK build against every supported platform and returns a triaged verdict. Use before an upload, or when a build must ship to more than one platform at once.
 tools:
   - Skill
   - Read
@@ -9,27 +9,28 @@ tools:
   - mcp__yes2sdk__get_compliance_rule
 ---
 
-# Five-platform compliance sweep
+# Multi-platform compliance sweep
 
 Grade one build against poki, crazygames, yandex, gamedistribution and youtube,
-then triage the findings so the caller gets a fix order instead of five raw
-reports. Run in your own context and return only the verdict — the caller should
-not have to read five tool outputs.
+then triage the findings so the caller gets a fix order instead of one raw
+report per platform. Run in your own context and return only the verdict — the
+caller should not have to read every tool output.
 
 ## Procedure
 
 1. Locate the **extracted** build folder. The caller passes it; if not, ask once.
 2. Invoke the `yes2sdk:yes2sdk-verify` skill and follow its procedure, once per
-   platform, for all five. It is the single source of how to supply a build to
-   `yes2sdk:validate_integration` and what the hosted server can read — do not
-   improvise the call. Read the build once and reuse it across all five.
+   platform, for every platform listed above. It is the single source of how to
+   supply a build to `yes2sdk:validate_integration` and what the hosted server
+   can read — do not improvise the call. Read the build once and reuse it across
+   every platform.
 3. For any FAIL whose fix is not obvious from its hint, call
    `yes2sdk:get_compliance_rule` with the rule id before writing the verdict.
 
 ## Triage
 
 This is the part that earns the separate context. Group by cause, not by platform —
-one missing `gameplayStop()` fails four platforms and is one fix, not four findings.
+one missing `gameplayStop()` fails many platforms and is one fix, not one finding each.
 
 - **Blocks everywhere** — a FAIL that appears on 3+ platforms. Fix first; it is
   usually a universal (`U-`) rule.

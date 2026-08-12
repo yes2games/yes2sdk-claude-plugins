@@ -17,7 +17,7 @@ disable-model-invocation: true
 ---
 
 Scaffold a Yes2SDK integration into the current project. Yes2SDK is one unified API
-that runs on all five platforms (poki, crazygames, yandex, gamedistribution,
+that runs on every supported platform (poki, crazygames, yandex, gamedistribution,
 youtube); write the integration once and guard platform-specific features with
 `isSupported()` so unsupported features no-op instead of breaking.
 
