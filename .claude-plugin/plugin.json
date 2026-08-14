@@ -2,7 +2,7 @@
   "name": "yes2sdk",
   "displayName": "Yes2SDK",
   "version": "0.2.0",
-  "description": "One integration ships your HTML5 game to Poki, CrazyGames, Yandex, GameDistribution, and YouTube Playables. One-step setup for Claude Code.",
+  "description": "One integration ships your HTML5 game to every supported web game platform. One command, and Claude Code knows the whole SDK.",
   "author": { "name": "Yes2Games", "email": "developer.support@yes2games.com" },
   "license": "MIT",
   "homepage": "https://developer.yes2games.com",
