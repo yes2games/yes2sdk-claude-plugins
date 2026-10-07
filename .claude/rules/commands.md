@@ -69,8 +69,8 @@ rule drifts silently and there is no test to catch it.
 
 - The shared verify procedure lives in exactly one file: `skills/yes2sdk-verify/SKILL.md`.
   Edit it there. `verify-poki`, `verify-crazygames`, `verify-yandex`,
-  `verify-gamedistribution`, `verify-youtube` and `verify-all` are thin wrappers that
-  invoke that skill and pass a platform — they must not restate the procedure.
+  `verify-gamedistribution`, `verify-youtube`, `verify-jest` and `verify-all` are thin
+  wrappers that invoke that skill and pass a platform; they must not restate the procedure.
 - Command files have no include mechanism and `${CLAUDE_PLUGIN_ROOT}` is substituted only
   in hooks and MCP configs, not in prompt markdown. A skill invoked by name is the one
   portable way for these files to share prose.

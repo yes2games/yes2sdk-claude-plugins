@@ -31,6 +31,7 @@ You type these.
 | `/verify-yandex [buildPath]` | Yandex Games compliance + static checks. |
 | `/verify-gamedistribution [buildPath]` | GameDistribution compliance + static checks. |
 | `/verify-youtube [buildPath]` | YouTube Playables compliance + static checks (strictest). |
+| `/verify-jest [buildPath]` | Jest universal checks, plus Jest's manual launch checklist listed as not yet checked. |
 | `/yes2sdk-docs <query>` | Search the Yes2SDK docs. |
 
 ```
@@ -70,7 +71,7 @@ Use the yes2sdk-compliance-sweep agent on ./build/webgl
 ```
 
 Prefer `/verify-all` for a quick pass/fail table; prefer the agent before an upload,
-when you want the five reports triaged rather than printed.
+when you want the per-platform reports triaged rather than printed.
 
 ## MCP tool coverage
 
@@ -79,11 +80,11 @@ All 11 `yes2sdk` MCP tools are reachable:
 | Tool | Fronted by |
 |---|---|
 | `detect_sdk` | `yes2sdk-install` skill, `/integrate-all` |
-| `get_install_instructions` | `yes2sdk-install` skill, `/integrate-all` |
+| `get_install_instructions` | `yes2sdk-install` skill, `/integrate-all`, `yes2sdk-platform-rules` |
 | `get_quickstart` | `/integrate-all`, `/yes2sdk-docs`, `yes2sdk-platform-rules` |
 | `get_api_reference` | `/integrate-all`, `/yes2sdk-docs`, `yes2sdk-platform-rules` |
 | `search_docs` | `/yes2sdk-docs` |
-| `get_platform_requirements` | `yes2sdk-platform-rules` |
+| `get_platform_requirements` | `yes2sdk-platform-rules`, `yes2sdk-verify`, `/verify-jest`, `/verify-all`, `yes2sdk-compliance-sweep` |
 | `validate_integration` | all `/verify-*`, `/integrate-all`, `yes2sdk-verify`, `yes2sdk-platform-rules`, `yes2sdk-compliance-sweep` |
 | `get_compliance_rule` | `yes2sdk-diagnose`, `yes2sdk-compliance-sweep` |
 | `troubleshoot` | `yes2sdk-diagnose` |
@@ -114,8 +115,8 @@ agent invoke `yes2sdk-install` and `yes2sdk-verify` rather than restating them.
 
 ### MCP server version
 
-This plugin is built against `yes2sdk` MCP server **0.3.0** and expects
-`>=0.3.0 <1.0.0` — recorded in `.claude-plugin/plugin.json` under
+This plugin is built against `yes2sdk` MCP server **0.3.2** and expects
+`>=0.3.2 <1.0.0`, recorded in `.claude-plugin/plugin.json` under
 `metadata.mcpServer`. The hosted server is upgraded in place, so no action is
 normally needed, and the plugin does not check the range at runtime.
 

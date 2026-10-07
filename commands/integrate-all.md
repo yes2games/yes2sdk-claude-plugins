@@ -18,7 +18,7 @@ disable-model-invocation: true
 
 Scaffold a Yes2SDK integration into the current project. Yes2SDK is one unified API
 that runs on every supported platform (poki, crazygames, yandex, gamedistribution,
-youtube); write the integration once and guard platform-specific features with
+youtube, jest); write the integration once and guard platform-specific features with
 `isSupported()` so unsupported features no-op instead of breaking.
 
 Target platform: "$ARGUMENTS" — default to `poki` when empty.
@@ -43,7 +43,8 @@ Steps:
    code.
 3. Call `yes2sdk:get_quickstart` for the target platform.
 4. Call `yes2sdk:get_api_reference` for the `ads` and `lifecycle` modules to get
-   exact method signatures.
+   exact method signatures. For `jest`, also call it for `iap`, `auth`, `data` and
+   `referrals` as the quickstart needs them.
 5. Generate the integration following the mandatory loop, in this order:
    - `initializeAsync()` — await it before any other SDK call.
    - `startGameAsync()` — call only when the game is loaded and interactable,
@@ -55,6 +56,12 @@ Steps:
    - `game.gameplayStart()` to resume after the ad.
    - Wrap every optional-feature call (`auth`, `banners`, `friends`, etc.) in its
      `isSupported()` guard.
+   - For `jest`, there are no ads: keep the loop above so the code stays portable,
+     never gate progression on a rewarded ad, and add the Jest calls the
+     quickstart's launch checklist lists (guest save, registration prompt for
+     guests only, notification sequence, purchase recovery, subscription check,
+     `exitRequested` save). Image sharing works on Jest even though
+     `context.isSupported()` is false, so do not gate it on that check.
 6. After writing the code, run `yes2sdk:validate_integration` for the target
    platform and report any FAILs/WARNs with fix hints.
 

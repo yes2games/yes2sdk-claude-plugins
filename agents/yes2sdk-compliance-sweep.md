@@ -7,11 +7,12 @@ tools:
   - Glob
   - mcp__yes2sdk__validate_integration
   - mcp__yes2sdk__get_compliance_rule
+  - mcp__yes2sdk__get_platform_requirements
 ---
 
 # Multi-platform compliance sweep
 
-Grade one build against poki, crazygames, yandex, gamedistribution and youtube,
+Grade one build against poki, crazygames, yandex, gamedistribution, youtube and jest,
 then triage the findings so the caller gets a fix order instead of one raw
 report per platform. Run in your own context and return only the verdict — the
 caller should not have to read every tool output.
@@ -45,7 +46,8 @@ one missing `gameplayStop()` fails many platforms and is one fix, not one findin
    applies to when you can identify it.
 4. Any checks that could not run, and why — a sweep with no event log did not run
    the behavioral rules at all, and reporting that as a clean pass is the worst
-   failure this agent can have.
+   failure this agent can have. The same goes for a platform whose requirements
+   include manual checks (Jest today): list those as not checked, never as passed.
 
 Never soften or reinterpret a FAIL, and never mark one resolved by reasoning — the
 rules are the platform's. If a finding looks wrong, report it as returned and say
