@@ -4,16 +4,32 @@ All notable changes to this plugin. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2026-10-07
+
+Adds Jest as a supported platform.
 
 ### Added
 
+- `/verify-jest` command. It runs the universal checks against a Jest build and lists
+  Jest's manual launch checklist, from `get_platform_requirements`, as not yet checked,
+  because the automated run does not grade it.
+- Jest in `/verify-all`, `/integrate-all`, the `yes2sdk-compliance-sweep` agent, the
+  `yes2sdk-verify` rejection notes, the `yes2sdk-platform-rules` skill and the
+  diagnose tool-routing notes. `/integrate-all` adds the Jest calls (guest save,
+  registration prompt, notifications, purchase recovery, subscriptions, exit save) and
+  never gates progression on a rewarded ad.
+- `jest` keyword in both manifests.
 - `displayName` (`Yes2SDK`) in both manifests, so the plugin shows its product name
   instead of the lowercase install id. Set before the first public listing, because
   changing it later renames the plugin in every installed user's UI.
 
 ### Changed
 
+- `yes2sdk-verify`, `/verify-all` and the compliance-sweep agent may call
+  `get_platform_requirements`, and report a platform's manual checks as not checked
+  instead of letting a clean automated run read as a pass.
+- `metadata.mcpServer` now records MCP server `0.3.2` (`>=0.3.2 <1.0.0`), the version
+  that serves the `jest` platform.
 - Command, agent, skill and README copy no longer state how many platforms Yes2SDK
   supports. The explicit platform ids stay where they are the list a command iterates;
   only the counts, which go stale silently as platforms are added, were removed.
@@ -75,4 +91,5 @@ The initial surface: the two manifests, `.mcp.json` registering the hosted MCP s
 `scripts/validate-plugin.mjs`. Shipped from `main` without a git tag, so no `v0.1.0`
 exists and none is created retroactively.
 
+[0.3.0]: https://github.com/yes2games/yes2sdk-claude-plugins/releases/tag/v0.3.0
 [0.2.0]: https://github.com/yes2games/yes2sdk-claude-plugins/releases/tag/v0.2.0

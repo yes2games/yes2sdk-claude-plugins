@@ -1,7 +1,7 @@
 {
   "name": "yes2sdk",
   "displayName": "Yes2SDK",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "One integration ships your HTML5 game to every supported web game platform. One command, and Claude Code knows the whole SDK.",
   "author": { "name": "Yes2Games", "email": "developer.support@yes2games.com" },
   "license": "MIT",
@@ -17,6 +17,7 @@
     "yandex-games",
     "gamedistribution",
     "youtube-playables",
+    "jest",
     "unity",
     "defold",
     "mcp"
@@ -25,8 +26,8 @@
     "mcpServer": {
       "name": "yes2sdk",
       "url": "https://mcp.yes2games.com/mcp",
-      "builtAgainst": "0.3.0",
-      "compatible": ">=0.3.0 <1.0.0"
+      "builtAgainst": "0.3.2",
+      "compatible": ">=0.3.2 <1.0.0"
     }
   }
 }
