@@ -8,7 +8,7 @@
       "displayName": "Yes2SDK",
       "source": "./",
       "description": "One integration ships your HTML5 game to every supported web game platform. One command, and Claude Code knows the whole SDK.",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "author": { "name": "Yes2Games", "email": "developer.support@yes2games.com" },
       "homepage": "https://developer.yes2games.com",
       "license": "MIT",
@@ -23,6 +23,7 @@
         "yandex-games",
         "gamedistribution",
         "youtube-playables",
+        "jest",
         "unity",
         "defold",
         "mcp"
