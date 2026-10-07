@@ -5,6 +5,7 @@ allowed-tools:
   - Read
   - Glob
   - mcp__yes2sdk__validate_integration
+  - mcp__yes2sdk__get_platform_requirements
 ---
 
 # Verifying a Yes2SDK build against a platform
@@ -35,7 +36,11 @@ procedure here, not in the commands.
    finding. For a multi-platform run, lead with one summary table —
    `platform | blocking-FAIL count | WARN count` — then list the FAILs underneath,
    grouped by platform.
-6. Never soften or reinterpret a FAIL. The rule set is the platform's, not this
+6. Some platforms are graded partly by hand. For Jest, `yes2sdk:validate_integration`
+   runs only the universal rules, and the platform's own requirements are a manual
+   launch checklist. Call `yes2sdk:get_platform_requirements` for that platform and
+   list each manual item as not checked. A clean automated run there is never a pass.
+7. Never soften or reinterpret a FAIL. The rule set is the platform's, not this
    plugin's; if a finding looks wrong, report it as returned and say so.
 
 ## What each platform usually rejects on
@@ -50,3 +55,4 @@ the rule set — `yes2sdk:validate_integration` is authoritative.
 | `yandex` | `startGameAsync()` missing, so the loading screen never dismisses; pause/resume not handled, so audio keeps playing during ads; `gameplayStop()` missing before ads; locale not read from `session.getLocale()`. |
 | `gamedistribution` | `gameId` not set before the SDK loads; mute/pause not wired to `beforeAd`/`afterAd`; rewards granted in `afterAd` instead of `adViewed`; external scripts beyond GD's own SDK. |
 | `youtube` | Strictest, and the checks are cert-mandatory: `startGameAsync()` not gating `gameReady()` (called during loading); `pause` not stopping game loop, audio and network; audio state not honored (`session.isAudioEnabled()` + `audioEnabledChange`); external scripts (CSP sandbox); cloud saves over the 3 MiB cap. |
+| `jest` | Mobile-first, paid by IAP and subscriptions only, with no in-game ads: progression gated on a rewarded ad; guest progress not saved before a login prompt; no D1 to D7 notification sequence with images for registered players; incomplete purchases not recovered at startup; a subscription the player already holds offered again; two login prompts (Automatic login reminders, `jest.autoLoginReminders`, left on next to the game's own `auth.showRegistrationPrompt`); nothing saved in `exitRequested`; root-absolute asset paths. |
