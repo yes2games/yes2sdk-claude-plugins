@@ -20,6 +20,9 @@ caller should not have to read every tool output.
 ## Procedure
 
 1. Locate the **extracted** build folder. The caller passes it; if not, ask once.
+   For a JavaScript/TypeScript project that is the built output (`dist/` from Vite),
+   not the source tree; if there is no build yet, say so and ask for one rather than
+   grading source.
 2. Invoke the `yes2sdk:yes2sdk-verify` skill and follow its procedure, once per
    platform, for every platform listed above. It is the single source of how to
    supply a build to `yes2sdk:validate_integration` and what the hosted server

@@ -4,6 +4,7 @@ description: Shared verify procedure the /verify-* commands run.
 allowed-tools:
   - Read
   - Glob
+  - Bash(npm run build:*)
   - mcp__yes2sdk__validate_integration
   - mcp__yes2sdk__get_platform_requirements
 ---
@@ -16,9 +17,14 @@ procedure here, not in the commands.
 
 ## Procedure
 
-1. Determine the build folder — the user's **extracted** WebGL build. The invoking
-   command passes the path as an argument when the user supplied one. If it is
-   empty, ask once, then reuse the same build for every platform in this run.
+1. Determine the build folder — the user's **extracted** WebGL/HTML5 build. The
+   invoking command passes the path as an argument when the user supplied one. If
+   it is empty, ask once, then reuse the same build for every platform in this run.
+   On a JavaScript/TypeScript project, build it first with the project's own build
+   script (Vite, `base: './'`) and verify the output folder (`dist/` unless the
+   config says otherwise) — never the source tree or a dev-server page, which carry
+   the mock instead of what ships. The build should contain no SDK of its own; the
+   dashboard injects it at upload, and `yes2sdk:validate_integration` checks this.
 2. Supply that build to the tool the way the connected server can actually read
    it. The plugin registers the **hosted** server, and it has no disk access, so
    `buildPath` there comes back as a blocking `build-path` FAIL — read the build

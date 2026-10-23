@@ -47,7 +47,9 @@ the result.
   running on the user's own machine — that is about where the process runs, not the
   transport, so local HTTP qualifies as much as stdio.
 - SDK naming taught to users: Defold `yes2sdk.*` (Lua), Unity `Yes2SDK.Yes2SDK.*` (C#),
-  JS `Yes2SDK.*` / `window.Yes2SDK`.
+  JS `Yes2SDK.*` / `window.Yes2SDK`, with the `@yes2games/js` package for helpers, types
+  and the mock. On JS the SDK itself is never installed or bundled — the dashboard
+  injects it — so never teach a step that adds it to the project.
 - Do NOT bake compliance rules or docs content into these files — defer to the MCP. Every
   command is a routing shim. **One named exception:** `yes2sdk-verify` and
   `yes2sdk-platform-rules` each carry a hedged "usual causes of rejection" list under an
