@@ -35,8 +35,16 @@ The plugin's identity, MCP registration, versioning, and install path. Manifests
 ## `.mcp.json` — hosted-MCP auto-registration
 
 - Auto-registers the `yes2sdk` MCP server on install: `mcpServers.yes2sdk` =
-  `{ type: "http", url: "https://mcp.yes2games.com/mcp" }`. Zero local install, no
-  dependency to run.
+  `{ type: "http", url: "https://mcp.yes2games.com/mcp", headers: { Authorization:
+  "Bearer ${YES2_API_KEY:-}" } }`. Zero local install, no dependency to run.
+- The header carries the user's own dashboard API key for the upload tools. Keep the
+  `:-` default: Claude Code expands `${VAR:-default}` in an http server's `headers`
+  (https://code.claude.com/docs/en/mcp, "Environment variable expansion in
+  `.mcp.json`"), and with it an unset key sends a bare `Bearer`, which the server treats
+  as no key: the docs tools keep working and the upload tools return setup steps. A bare
+  `${YES2_API_KEY}` instead leaves the literal text in the header and adds a
+  missing-variable warning to `/mcp` for every user who never uploads. Never put a key
+  value in this file.
 - Commands are bound to the server NAME `yes2sdk`, not the URL. Local-MCP users register
   their own `yes2sdk`-named server (e.g. `http://127.0.0.1:8091/mcp`); the hosted HTTP
   transport has DNS-rebinding protection, so use `127.0.0.1:8091` exactly when testing

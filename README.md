@@ -3,7 +3,7 @@
 One integration ships your HTML5 game to every supported web game platform. One command, and Claude Code knows the whole SDK.
 
 One-step access to the [Yes2SDK](https://developer.yes2games.com) MCP from Claude Code, plus
-integrate/verify slash commands, skills that fire on intent, and a multi-platform
+integrate/verify/upload slash commands, skills that fire on intent, and a multi-platform
 compliance agent. Installing the plugin auto-registers the hosted Yes2SDK MCP — no local
 server to build or run.
 
@@ -25,6 +25,33 @@ Installing registers the `yes2sdk` MCP server (remote HTTP,
 `https://mcp.yes2games.com/mcp`) and adds the components below. Run `/mcp` to confirm
 the server is connected.
 
+## Dashboard API key (for uploads only)
+
+Everything except uploading works with no key. To upload builds to the Yes2 dashboard
+with `/upload`, give the plugin your own dashboard API key:
+
+1. Create a key on the dashboard: a personal key under your avatar, **Settings →
+   Personal API keys**, or a team key from the **Team** page.
+2. Export it from your shell profile (`~/.zshrc`, `~/.bashrc`), never from a file in a
+   project and never in a commit:
+
+   ```bash
+   export YES2_API_KEY=y2g_your_key_here
+   ```
+
+3. Open a new terminal and start Claude Code from it. The plugin's `.mcp.json` sends
+   the key to the `yes2sdk` server as `Authorization: Bearer ${YES2_API_KEY:-}` on each
+   request; the server passes it to the dashboard for that request only and never
+   stores it.
+
+Without the variable the header goes out empty, the docs and validation tools work as
+before, and the upload tools answer with these setup steps instead. Claude never needs
+to see the key, so do not paste it into the chat.
+
+Uploading puts a build on the dashboard, where you can open it in the Inspector. It
+does not publish anything: publishing to platforms is requested on the dashboard and
+done by a Yes2Games admin.
+
 ## Commands
 
 You type these.
@@ -40,12 +67,14 @@ You type these.
 | `/verify-youtube [buildPath]` | YouTube Playables compliance + static checks (strictest). |
 | `/verify-jest [buildPath]` | Jest universal checks, plus Jest's manual launch checklist listed as not yet checked. |
 | `/yes2sdk-docs <query>` | Search the Yes2SDK docs. |
+| `/upload [buildPath]` | Build (JS/TS), zip and upload a build to the Yes2 dashboard with your API key, then return its Inspector link. Needs `YES2_API_KEY` (see above). |
 
 ```
 /integrate-all poki
 /verify-youtube ./build/webgl
 /verify-all
 /yes2sdk-docs rewarded ad reward not granted
+/upload ./dist
 ```
 
 The `/verify-*` commands take the path to your extracted WebGL/HTML5 build — pass it
@@ -63,6 +92,7 @@ You do not invoke these. Describe the problem and the matching skill fires.
 | `yes2sdk-diagnose` | A symptom, a compliance FAIL you need to understand, or a "does this platform support X" question. | *"Rewarded ad plays but the reward never lands."* |
 | `yes2sdk-platform-rules` | Any Yes2SDK integration or compliance work; carries the cross-platform gotchas and points at the MCP for the authoritative rule set. | *"What breaks if I ship this to Yandex and Poki?"* |
 | `yes2sdk-verify` | Invoked by the `/verify-*` commands — the single source of the verify procedure. | (invoked for you) |
+| `yes2sdk-upload` | Uploading a build to the Yes2 dashboard; `/upload` runs it. Picks or creates the game, zips the build with `index.html` at the root, uploads it, waits for processing and returns the Inspector link and any upload warnings. Asks before reserving a version. | *"Upload this build to the Yes2 dashboard."* |
 
 `yes2sdk-diagnose` keeps its full tool-routing map in
 `skills/yes2sdk-diagnose/references/tool-routing.md`, loaded only when needed.
@@ -83,7 +113,7 @@ when you want the per-platform reports triaged rather than printed.
 
 ## MCP tool coverage
 
-All 11 `yes2sdk` MCP tools are reachable:
+All 16 `yes2sdk` MCP tools are reachable:
 
 | Tool | Fronted by |
 |---|---|
@@ -98,6 +128,15 @@ All 11 `yes2sdk` MCP tools are reachable:
 | `troubleshoot` | `yes2sdk-diagnose` |
 | `get_platform_capabilities` | `yes2sdk-diagnose` |
 | `list_sdk_modules` | `yes2sdk-diagnose` |
+| `list_games` | `yes2sdk-upload`, `/upload` |
+| `create_game` | `yes2sdk-upload`, `/upload` |
+| `prepare_upload` | `yes2sdk-upload`, `/upload` |
+| `finalize_upload` | `yes2sdk-upload`, `/upload` |
+| `get_build_status` | `yes2sdk-upload`, `/upload` |
+
+The last five are the dashboard tools. They need your API key (see
+[Dashboard API key](#dashboard-api-key-for-uploads-only)); without it they return setup
+steps and call nothing.
 
 The server's MCP **prompts** (`integrate_module`, `setup_new_project`) and
 **resources** (`yes2sdk://modules`, `yes2sdk://docs/{module}`) are intentionally not
@@ -119,7 +158,9 @@ MCP, not here.
 Each `/verify-*` command is a wrapper that names its platform and invokes the
 `yes2sdk-verify` skill, so the shared procedure and the per-platform rejection
 notes live in exactly one file. Likewise `/integrate-all` and the compliance-sweep
-agent invoke `yes2sdk-install` and `yes2sdk-verify` rather than restating them.
+agent invoke `yes2sdk-install` and `yes2sdk-verify` rather than restating them, and
+`/upload` invokes `yes2sdk-upload`, which hands its optional pre-upload check to
+`yes2sdk-verify`.
 
 ### MCP server version
 
@@ -127,6 +168,10 @@ This plugin is built against `yes2sdk` MCP server **0.3.2** and expects
 `>=0.3.2 <1.0.0`, recorded in `.claude-plugin/plugin.json` under
 `metadata.mcpServer`. The hosted server is upgraded in place, so no action is
 normally needed, and the plugin does not check the range at runtime.
+
+The upload tools (`list_games`, `create_game`, `prepare_upload`, `finalize_upload`,
+`get_build_status`) are newer than that version. On a server without them, `/upload`
+stops at its first step because `yes2sdk:list_games` does not exist.
 
 You notice a mismatch as a symptom, not a version number: a `/verify-*` or
 `/integrate-all` run fails because an MCP tool is missing or its arguments were
@@ -138,7 +183,9 @@ command and the error text.
 `.mcp.json` points at the hosted HTTP endpoint for zero-install. If you are running
 the MCP locally instead, register your local server (e.g.
 `http://127.0.0.1:8091/mcp`) in your own MCP config; the slash commands work
-against any server named `yes2sdk`.
+against any server named `yes2sdk`. For uploads, give that entry the same
+`"headers": { "Authorization": "Bearer ${YES2_API_KEY:-}" }` (local HTTP), or put
+`YES2_API_KEY` in its `env` (stdio).
 
 ### Running the MCP on your own machine
 

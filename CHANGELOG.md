@@ -4,6 +4,33 @@ All notable changes to this plugin. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-10-23
+
+Adds uploading a build to the Yes2 dashboard, through the authenticated dashboard
+tools in the `yes2sdk` MCP.
+
+### Added
+
+- `yes2sdk-upload` skill, the single source of the upload procedure. It checks the key
+  with `list_games`, picks the game or creates it with `create_game`, builds a JS/TS
+  project with `npm run build` (or asks for the Unity/Defold WebGL/HTML5 output folder),
+  zips it with `index.html` at the zip root, can run `yes2sdk-verify` first, then calls
+  `prepare_upload`, runs the returned `curl` PUT as given, calls `finalize_upload` and
+  polls `get_build_status` until the build is `ready` or `failed`. It reports the
+  `inspectorUrl` and any upload warnings, and says that publishing to platforms stays an
+  admin action on the dashboard. It never reads, prints or asks for the key.
+- `/upload [buildPath]` command, a thin wrapper over the skill.
+- `list_games`, `create_game`, `prepare_upload`, `finalize_upload` and
+  `get_build_status` in the README coverage table (16 tools) and in the authoring
+  rules.
+- README section on setting `YES2_API_KEY` from the shell profile.
+
+### Changed
+
+- `.mcp.json` sends `Authorization: Bearer ${YES2_API_KEY:-}` to the hosted server. The
+  `:-` default keeps the header empty when the variable is unset, so the docs and
+  validation tools work without a key and only the upload tools ask for one.
+
 ## [0.4.0] - 2026-10-23
 
 Adds JavaScript/TypeScript (Phaser, three.js, vanilla) as a supported engine, through
