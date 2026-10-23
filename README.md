@@ -44,8 +44,8 @@ with `/upload`, give the plugin your own dashboard API key:
    request; the server passes it to the dashboard for that request only and never
    stores it.
 
-Without the variable the header goes out empty, the docs and validation tools work as
-before, and the upload tools answer with these setup steps instead. Claude never needs
+Without the variable the header goes out as a bare `Bearer`, which the server treats
+as no key: the docs and validation tools work as before, and the upload tools answer with these setup steps instead. Claude never needs
 to see the key, so do not paste it into the chat.
 
 Uploading puts a build on the dashboard, where you can open it in the Inspector. It

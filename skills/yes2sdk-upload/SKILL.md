@@ -27,7 +27,8 @@ final report.
 
 The plugin wraps the `yes2sdk` MCP, which does the real work. The dashboard tools
 act with the user's own dashboard API key, which this plugin's `.mcp.json` sends as
-`Authorization: Bearer ${YES2_API_KEY}` on every request. The hosted server never
+`Authorization: Bearer ${YES2_API_KEY:-}` on every request; with the variable unset
+that is a bare `Bearer`, which the server treats as no key. The hosted server never
 reads the zip: `yes2sdk:prepare_upload` hands back a `curl` command that sends it
 from the user's machine straight to storage.
 
@@ -43,7 +44,8 @@ from the user's machine straight to storage.
 ## Procedure
 
 1. **Check the key.** Call `yes2sdk:list_games`. If it answers with setup steps
-   (no key reached the server, or the header is not a Yes2 key) or with
+   (no key reached the server, or `YES2_API_KEY` holds something that is not a
+   Yes2 key) or with
    `INVALID_API_KEY`, stop and give the user these steps, then wait for them:
    - Create a key on the dashboard: a personal key under avatar, **Settings →
      Personal API keys**, or a team key from the **Team** page. Copy it.
