@@ -7,6 +7,13 @@ integrate/verify slash commands, skills that fire on intent, and a multi-platfor
 compliance agent. Installing the plugin auto-registers the hosted Yes2SDK MCP — no local
 server to build or run.
 
+Works with Unity, Defold and JavaScript/TypeScript games (Phaser, three.js or vanilla).
+On JavaScript/TypeScript you write against `window.Yes2SDK` with the
+[`@yes2games/js`](https://www.npmjs.com/package/@yes2games/js) package (runtime helpers,
+types, a local-dev mock), build with Vite, and upload the plain build; the dashboard
+injects the real SDK, so you never bundle it. See
+https://developer.yes2games.com/docs/javascript.
+
 ## Install
 
 ```
@@ -24,7 +31,7 @@ You type these.
 
 | Command | What it does |
 |---|---|
-| `/integrate-all [platform]` | Detect the engine, check the SDK is installed, then scaffold the unified init + ad loop with `isSupported()` guards, portable across every supported platform. |
+| `/integrate-all [platform]` | Detect the engine (Unity, Defold or JavaScript/TypeScript), check the SDK is installed, then scaffold the unified init + ad loop with `isSupported()` guards, portable across every supported platform. On JavaScript/TypeScript it also wires the dev-only mock import. |
 | `/verify-all [buildPath]` | Run `yes2sdk:validate_integration` against every supported platform; one pass/fail table. |
 | `/verify-poki [buildPath]` | Poki compliance + static checks. |
 | `/verify-crazygames [buildPath]` | CrazyGames compliance + static checks. |
@@ -41,8 +48,9 @@ You type these.
 /yes2sdk-docs rewarded ad reward not granted
 ```
 
-The `/verify-*` commands take the path to your extracted WebGL build — pass it
-inline or leave it off and they ask once. An Inspector event log can be supplied for
+The `/verify-*` commands take the path to your extracted WebGL/HTML5 build — pass it
+inline or leave it off and they ask once. On a JavaScript/TypeScript project they
+build it first with your Vite build script and check the output folder (`dist/`). An Inspector event log can be supplied for
 behavioral checks.
 
 ## Skills
@@ -51,7 +59,7 @@ You do not invoke these. Describe the problem and the matching skill fires.
 
 | Skill | Fires when | Say something like |
 |---|---|---|
-| `yes2sdk-install` | Onboarding a project, or a Yes2SDK reference will not resolve or compile. Detects the engine and install state before any code is written. | *"Set up Yes2SDK in this project."* |
+| `yes2sdk-install` | Onboarding a project, or a Yes2SDK reference will not resolve or compile. Detects the engine (Unity, Defold, or JavaScript/TypeScript with Phaser, three.js or Vite) and install state before any code is written. | *"Set up Yes2SDK in this project."* |
 | `yes2sdk-diagnose` | A symptom, a compliance FAIL you need to understand, or a "does this platform support X" question. | *"Rewarded ad plays but the reward never lands."* |
 | `yes2sdk-platform-rules` | Any Yes2SDK integration or compliance work; carries the cross-platform gotchas and points at the MCP for the authoritative rule set. | *"What breaks if I ship this to Yandex and Poki?"* |
 | `yes2sdk-verify` | Invoked by the `/verify-*` commands — the single source of the verify procedure. | (invoked for you) |

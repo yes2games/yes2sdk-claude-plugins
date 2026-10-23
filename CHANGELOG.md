@@ -4,6 +4,37 @@ All notable changes to this plugin. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-10-23
+
+Adds JavaScript/TypeScript (Phaser, three.js, vanilla) as a supported engine, through
+the `@yes2games/js` package.
+
+### Added
+
+- JavaScript/TypeScript in `yes2sdk-install`, `/integrate-all`, `yes2sdk-verify`,
+  `yes2sdk-diagnose` and its tool-routing notes, `yes2sdk-platform-rules`,
+  `/yes2sdk-docs`, the compliance-sweep agent and the README. `/integrate-all` places
+  the JS init, loading and ad calls, routes ads and pause/mute through `@yes2games/js`
+  (or its `/phaser` and `/three` helpers), imports the mock only under
+  `import.meta.env.DEV`, and marks the game canvas `data-yes2-canvas`.
+- `yes2sdk-verify` builds a JS project with its Vite build script before
+  `validate_integration` and checks the output folder, never the source tree or a
+  dev-server page.
+- `/yes2sdk-docs` points JavaScript questions at
+  https://developer.yes2games.com/docs/javascript.
+- `javascript`, `typescript`, `phaser` and `threejs` keywords in both manifests.
+
+### Changed
+
+- On a JS project, `installed` now means the `@yes2games/js` package, which
+  `get_install_instructions("js")` installs. The SDK itself is still never installed
+  or bundled: the dashboard injects `window.Yes2SDK` at upload. The old wording, that
+  `installed: no` is the expected permanent state on JS, is gone.
+- `yes2sdk-install` passes the root `vite.config.*` to `detect_sdk` alongside
+  `package.json`, so the server can report Phaser, three.js and Vite.
+- `/integrate-all` verifies through the `yes2sdk-verify` skill instead of calling
+  `validate_integration` itself, and may run `npm install` and `npm run build`.
+
 ## [0.3.0] - 2026-10-07
 
 Adds Jest as a supported platform.
@@ -91,5 +122,6 @@ The initial surface: the two manifests, `.mcp.json` registering the hosted MCP s
 `scripts/validate-plugin.mjs`. Shipped from `main` without a git tag, so no `v0.1.0`
 exists and none is created retroactively.
 
+[0.4.0]: https://github.com/yes2games/yes2sdk-claude-plugins/releases/tag/v0.4.0
 [0.3.0]: https://github.com/yes2games/yes2sdk-claude-plugins/releases/tag/v0.3.0
 [0.2.0]: https://github.com/yes2games/yes2sdk-claude-plugins/releases/tag/v0.2.0
