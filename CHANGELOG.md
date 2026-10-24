@@ -6,18 +6,39 @@ All notable changes to this plugin. Format follows
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-24
+
+Sign-in becomes the default way the dashboard tools act as you: run `/mcp` →
+Authenticate when the first dashboard tool asks. `YES2_API_KEY` is now optional, for CI
+and headless use. Also adds editing a game from the upload flow.
+
+Needs the dashboard's OAuth sign-in and the MCP's lazy sign-in gate to be live.
+
 ### Added
 
-- `update_game`, `set_game_image` and `rename_build` in the README coverage table
-  (19 tools), the authoring rules and the `allowed-tools` of `yes2sdk-upload` and
-  `/upload`. After a build is ready, the skill can offer to rename it or edit the game's
-  details, icon or banner, only when the user asks. `set_game_image` returns a `curl`
-  command that reads `$YES2_API_KEY` from the user's shell, and the skill runs it as
-  given.
+- Sign-in through Claude Code's MCP OAuth. The dashboard tools no longer need a key:
+  the first call asks the user to run `/mcp` → `yes2sdk` → **Authenticate** and approve
+  in the browser. The docs and validation tools never ask. The README covers the
+  approval page, revoking under **Settings → Connected apps**, and preview accounts.
+- `update_game`, `set_game_image`, `finalize_image_upload` and `rename_build` in the
+  README coverage table (20 tools), the authoring rules and the `allowed-tools` of
+  `yes2sdk-upload` and `/upload`. After a build is ready, the skill can offer to rename
+  it or edit the game's details, icon or banner, only when the user asks.
+- `yes2sdk-upload` handles a sign-in-required answer (tell the user to run `/mcp` →
+  Authenticate, then retry), `INSUFFICIENT_SCOPE`, and a preview account's
+  `game_limit_reached` and `build_limit_reached`.
 
 ### Changed
 
-- The README's API key section now covers all dashboard tools, not only uploads.
+- `.mcp.json` sends the optional key as `X-Yes2-Api-Key: ${YES2_API_KEY:-}` instead of
+  `Authorization: Bearer ${YES2_API_KEY:-}`. A configured `Authorization` header turns
+  off Claude Code's OAuth for that server. Unset, the header goes out empty, which the
+  server treats as no key. Existing key users need no change.
+- Setting an icon or banner uses the presigned flow: `set_game_image` takes the image's
+  `size` and path and returns a `curl` PUT with no credential in it, then
+  `finalize_image_upload` sets the image. The command no longer reads `$YES2_API_KEY`.
+- The README's API key section now covers all dashboard tools, not only uploads, and
+  sits under sign-in as the CI and headless option.
 
 ## [0.5.0] - 2026-10-23
 

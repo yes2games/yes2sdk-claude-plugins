@@ -1,6 +1,6 @@
 ---
 name: yes2sdk-upload
-description: Uploads a built Yes2SDK game to the Yes2 dashboard with the user's own API key and returns its Inspector link. Use when the user asks to upload or push a build to the dashboard.
+description: Uploads a built Yes2SDK game to the Yes2 dashboard as the signed-in user (or with their own API key) and returns its Inspector link. Use when the user asks to upload or push a build to the dashboard.
 allowed-tools:
   - Skill
   - Read
@@ -17,6 +17,7 @@ allowed-tools:
   - mcp__yes2sdk__get_build_status
   - mcp__yes2sdk__update_game
   - mcp__yes2sdk__set_game_image
+  - mcp__yes2sdk__finalize_image_upload
   - mcp__yes2sdk__rename_build
 ---
 
@@ -29,38 +30,61 @@ studio requests it there, and a Yes2Games admin reviews and publishes). Say so i
 final report.
 
 The plugin wraps the `yes2sdk` MCP, which does the real work. The dashboard tools
-act with the user's own dashboard API key, which this plugin's `.mcp.json` sends as
-`Authorization: Bearer ${YES2_API_KEY:-}` on every request; with the variable unset
-that is a bare `Bearer`, which the server treats as no key. The hosted server never
-reads the zip: `yes2sdk:prepare_upload` hands back a `curl` command that sends it
-from the user's machine straight to storage.
+act as the user, in one of two ways:
 
-## The API key is never yours to handle
+- **Sign-in (the default).** The user signs in to the dashboard once through Claude
+  Code (`/mcp` → `yes2sdk` → **Authenticate**), and Claude Code sends the resulting
+  token itself. Nothing to set up beforehand: the first dashboard tool call asks.
+- **An API key (optional, for CI and headless use).** If `YES2_API_KEY` is set, this
+  plugin's `.mcp.json` sends it as `X-Yes2-Api-Key: ${YES2_API_KEY:-}`; unset, the
+  header goes out empty, which the server treats as no key.
 
+The hosted server never reads the zip or the image: `yes2sdk:prepare_upload` and
+`yes2sdk:set_game_image` hand back a `curl` command that sends the file from the
+user's machine straight to storage.
+
+## Credentials are never yours to handle
+
+- Sign-in happens in the user's browser. Never ask for a password, a code or a token,
+  and never try to complete the sign-in yourself.
 - Never print, echo, `cat`, `grep` or `env`-dump `YES2_API_KEY`, and never put it in
   a command, a file or a commit. Nothing in this procedure needs its value: the MCP
   client sends it.
-- Never ask the user to paste the key into the chat. If they do anyway, do not repeat
-  it, and suggest they revoke it and create a new one, since the chat is kept.
+- Never ask the user to paste a key or token into the chat. If they do anyway, do not
+  repeat it, and suggest they revoke it (a key on the dashboard's **Personal API keys**,
+  a sign-in under **Settings → Connected apps**), since the chat is kept.
 - The only presence check is step 1: call `yes2sdk:list_games` and read the answer.
 
 ## Procedure
 
-1. **Check the key.** Call `yes2sdk:list_games`. If it answers with setup steps
-   (no key reached the server, or `YES2_API_KEY` holds something that is not a
-   Yes2 key) or with
-   `INVALID_API_KEY`, stop and give the user these steps, then wait for them:
-   - Create a key on the dashboard: a personal key under avatar, **Settings →
-     Personal API keys**, or a team key from the **Team** page. Copy it.
-   - Add `export YES2_API_KEY=y2g_…` to their shell profile (`~/.zshrc`,
-     `~/.bashrc`), never to a file in the project and never to a commit.
-   - Open a new terminal and restart Claude Code from it, so the plugin's MCP
-     connection picks the key up. `/mcp` shows the `yes2sdk` server reconnect.
+1. **Check the sign-in.** Call `yes2sdk:list_games`.
+   - **Sign-in required.** If the call fails because the `yes2sdk` server needs the
+     user to sign in or authenticate (Claude Code says to run `/mcp`), or it answers
+     with setup steps, stop and tell the user: run `/mcp`, pick `yes2sdk`, choose
+     **Authenticate**, and approve in the browser that opens. The approval page shows
+     the account the app will act as: their studio, or their personal games on a
+     preview account. Then wait for them and call `yes2sdk:list_games` again. Only
+     the dashboard tools need this; the docs and validation tools keep working.
+   - **`INVALID_API_KEY` or a sign-in that stopped working.** If they use a key, it
+     was revoked or mistyped: create a new one. If they signed in, the connection was
+     revoked or expired, or their seat changed: run `/mcp` → `yes2sdk` →
+     **Authenticate** again.
+   - **`INSUFFICIENT_SCOPE`.** The credential lacks a permission this procedure
+     needs. Ask them to sign in again (`/mcp` → **Authenticate**) and approve every
+     permission, or to use a key with all scopes.
+   - **No browser (CI, a remote shell).** Offer the key instead: a personal key under
+     avatar, **Settings → Personal API keys** (or a team key from the **Team** page),
+     added as `export YES2_API_KEY=y2g_…` to their shell profile (`~/.zshrc`,
+     `~/.bashrc`), never to a project file or a commit. Then they open a new terminal
+     and restart Claude Code from it.
 2. **Pick the game.** Show the games `yes2sdk:list_games` returned and ask which one
    this build belongs to. If it is not there, offer `yes2sdk:create_game` with the
    name the user gives; `vanilla` is the engine for any JavaScript/TypeScript game
    (plain JS, Phaser, three.js). `create_game` makes a new game every call, so never
-   call it for a game already listed. Keep the `gameId`.
+   call it for a game already listed. Keep the `gameId`. A preview account (no studio
+   yet) works with its personal games: `game_limit_reached` means it already has the
+   most games it may (3 by default) until the account is verified, so offer to upload
+   to one of the listed games instead.
 3. **Get the build folder.** The user may have passed a path; it must be the
    folder that holds the built `index.html`.
    - JavaScript/TypeScript (Vite): run `npm run build` and use the output folder,
@@ -88,8 +112,9 @@ from the user's machine straight to storage.
 8. **Prepare.** Call `yes2sdk:prepare_upload` with `gameId`, `version`, `size`, the
    zip's absolute path as `zipPath`, and `notes` if the user gave release notes.
    `VERSION_EXISTS` means the game already has that version: propose the next one
-   (bump the last number) and ask before retrying. Pass every other error through as
-   returned.
+   (bump the last number) and ask before retrying. `build_limit_reached` means a
+   preview account's game already holds its builds (1 by default) until the account
+   is verified: say so and stop. Pass every other error through as returned.
 9. **Upload.** Run the `curl` command it returned **exactly as given**: do not edit
    it, add headers or change the URL. An empty response means the zip landed. An XML
    error body means it did not, usually a size mismatch or an expired URL: re-measure
@@ -116,8 +141,18 @@ Do not call these unprompted; mention them once at most, after the report.
 - `yes2sdk:update_game` with `gameId` and only the fields the user wants changed
   (name, description, engine, category, tags, orientation and the like) edits the game
   profile.
-- `yes2sdk:set_game_image` with `gameId`, `kind` (`icon` or `banner`) and the image's
-  absolute path as `imagePath` returns a `curl` command. Run it **exactly as given**:
-  it reads `$YES2_API_KEY` from the user's shell, so never replace that with the
-  value, and the image goes from the user's machine straight to the dashboard.
-  `remove: true` deletes the image instead, so confirm with the user first.
+- Setting an icon or banner takes three steps:
+  1. Measure the image (`stat -f%z` on macOS, `stat -c%s` on Linux). It must be PNG,
+     JPEG or WebP, at most 15 MB.
+  2. `yes2sdk:set_game_image` with `gameId`, `kind` (`icon` or `banner`), `size` and
+     the image's absolute path as `imagePath` returns an `uploadId` and a `curl` PUT.
+     Run it **exactly as given**: it carries no credential, and the image goes from
+     the user's machine straight to storage. An XML error body means it did not land
+     (usually a size or type mismatch, or an expired URL): call `set_game_image`
+     again.
+  3. `yes2sdk:finalize_image_upload` with `gameId` and `uploadId` makes it the icon or
+     banner. Calling it again is safe; `UPLOAD_NOT_RECEIVED` means the PUT has not
+     finished.
+
+  `set_game_image` with `remove: true` deletes the image instead, so confirm with the
+  user first.
