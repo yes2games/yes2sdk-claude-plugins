@@ -33,11 +33,23 @@ the result.
 ## Conventions
 
 - Kebab-case filename matching the slash-command name. Skill dir name == frontmatter `name`.
-- All 11 MCP tools are fronted; the README's coverage table is the map. Install path:
+- All 16 MCP tools are fronted; the README's coverage table is the map. Install path:
   `detect_sdk`, `get_install_instructions`. Docs: `search_docs`, `get_quickstart`,
   `get_api_reference`, `list_sdk_modules`. Compliance: `get_platform_requirements`,
   `get_compliance_rule`, `get_platform_capabilities`, `validate_integration`. Symptoms:
-  `troubleshoot`. Adding a tool to the server means adding it to a skill AND that table.
+  `troubleshoot`. Dashboard upload: `list_games`, `create_game`, `prepare_upload`,
+  `finalize_upload`, `get_build_status`. Adding a tool to the server means adding it to a
+  skill AND that table.
+- **The five dashboard tools act with the user's own API key**, which `.mcp.json` sends
+  from `YES2_API_KEY` (see `marketplace.md`). Without one they return setup steps, so the
+  presence check is a call to `list_games`, never a look at the variable. No file here
+  may print, echo or `grep` the key, put it in a command, or ask the user to paste it.
+  `prepare_upload` returns a `curl` PUT that runs on the user's machine; run it exactly
+  as returned, and leave `curl` out of `allowed-tools` so the user approves each upload.
+- `yes2sdk-upload` is side-effecting but deliberately has no `disable-model-invocation`:
+  with it, Claude cannot invoke the skill at all, so `/upload` (which does carry the flag)
+  could not hand off to it. The guards are in the procedure instead: the user confirms the
+  game and version before `prepare_upload`, and the `curl` PUT needs their approval.
 - **Two tools take a disk path OR inline content, and this plugin registers the HOSTED
   server, which has no disk access.** `detect_sdk` → pass `files`, not `projectPath`
   (exactly one mode per request). `validate_integration` → pass `indexHtml`/`fileList`/
@@ -60,9 +72,11 @@ the result.
 
 ## One procedure, one file
 
-A procedure lives in exactly one skill, and everything else invokes it by name. Two
+A procedure lives in exactly one skill, and everything else invokes it by name. Three
 established: `yes2sdk-verify` owns how to supply a build to `validate_integration`;
-`yes2sdk-install` owns engine detection and its preconditions. `/integrate-all` and the
+`yes2sdk-install` owns engine detection and its preconditions; `yes2sdk-upload` owns
+the dashboard upload flow, which `/upload` wraps and which hands its optional pre-upload
+check to `yes2sdk-verify`. `/integrate-all` and the
 `yes2sdk-compliance-sweep` agent invoke them rather than restating them — both carry
 `Skill` in their tool list for exactly that reason. A second copy of a hosted-vs-local
 rule drifts silently and there is no test to catch it.

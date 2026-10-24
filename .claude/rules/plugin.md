@@ -2,7 +2,7 @@
 
 This repo is a Claude Code **plugin**, not compiled code: manifests
 (`.claude-plugin/*.json`), a remote-MCP registration (`.mcp.json`), slash-command
-prompt-markdown (`commands/*.md`), four skills (`skills/*/SKILL.md`), one agent
+prompt-markdown (`commands/*.md`), five skills (`skills/*/SKILL.md`), one agent
 (`agents/*.md`), and one dependency-free validator (`scripts/validate-plugin.mjs`). The
 `package.json` carries metadata and the `validate` script only — no dependencies, no
 build, no bundler, no `node_modules`.
