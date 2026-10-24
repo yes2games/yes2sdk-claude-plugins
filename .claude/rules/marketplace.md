@@ -35,13 +35,18 @@ The plugin's identity, MCP registration, versioning, and install path. Manifests
 ## `.mcp.json` — hosted-MCP auto-registration
 
 - Auto-registers the `yes2sdk` MCP server on install: `mcpServers.yes2sdk` =
-  `{ type: "http", url: "https://mcp.yes2games.com/mcp", headers: { Authorization:
-  "Bearer ${YES2_API_KEY:-}" } }`. Zero local install, no dependency to run.
-- The header carries the user's own dashboard API key for the dashboard tools. Keep the
+  `{ type: "http", url: "https://mcp.yes2games.com/mcp", headers: { "X-Yes2-Api-Key":
+  "${YES2_API_KEY:-}" } }`. Zero local install, no dependency to run.
+- Sign-in (OAuth, `/mcp` → Authenticate) is the default way the dashboard tools act as
+  the user. **Never configure an `Authorization` header here**: in Claude Code a
+  configured `Authorization` header turns off OAuth for that server
+  (https://code.claude.com/docs/en/mcp), so nobody could sign in.
+- The header carries the user's optional dashboard API key (CI, headless). Keep the
   `:-` default: Claude Code expands `${VAR:-default}` in an http server's `headers`
   (https://code.claude.com/docs/en/mcp, "Environment variable expansion in
-  `.mcp.json`"), and with it an unset key sends a bare `Bearer`, which the server treats
-  as no key: the docs tools keep working and the dashboard tools return setup steps. A bare
+  `.mcp.json`"), and with it an unset key sends an empty `X-Yes2-Api-Key` (checked on
+  Claude Code 2.1.304), which the server treats as no key: the docs tools keep working
+  and the dashboard tools ask the user to sign in. A bare
   `${YES2_API_KEY}` instead leaves the literal text in the header and adds a
   missing-variable warning to `/mcp` for every user who never uploads. Never put a key
   value in this file.
