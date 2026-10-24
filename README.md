@@ -25,10 +25,11 @@ Installing registers the `yes2sdk` MCP server (remote HTTP,
 `https://mcp.yes2games.com/mcp`) and adds the components below. Run `/mcp` to confirm
 the server is connected.
 
-## Dashboard API key (for uploads only)
+## Dashboard API key (for the dashboard tools only)
 
-Everything except uploading works with no key. To upload builds to the Yes2 dashboard
-with `/upload`, give the plugin your own dashboard API key:
+Everything except the dashboard tools works with no key. To upload builds to the Yes2
+dashboard with `/upload`, or to edit a game there, give the plugin your own dashboard API
+key:
 
 1. Create a key on the dashboard: a personal key under your avatar, **Settings →
    Personal API keys**, or a team key from the **Team** page.
@@ -45,7 +46,7 @@ with `/upload`, give the plugin your own dashboard API key:
    stores it.
 
 Without the variable the header goes out as a bare `Bearer`, which the server treats
-as no key: the docs and validation tools work as before, and the upload tools answer with these setup steps instead. Claude never needs
+as no key: the docs and validation tools work as before, and the dashboard tools answer with these setup steps instead. Claude never needs
 to see the key, so do not paste it into the chat.
 
 Uploading puts a build on the dashboard, where you can open it in the Inspector. It
@@ -113,7 +114,7 @@ when you want the per-platform reports triaged rather than printed.
 
 ## MCP tool coverage
 
-All 16 `yes2sdk` MCP tools are reachable:
+All 19 `yes2sdk` MCP tools are reachable:
 
 | Tool | Fronted by |
 |---|---|
@@ -133,10 +134,16 @@ All 16 `yes2sdk` MCP tools are reachable:
 | `prepare_upload` | `yes2sdk-upload`, `/upload` |
 | `finalize_upload` | `yes2sdk-upload`, `/upload` |
 | `get_build_status` | `yes2sdk-upload`, `/upload` |
+| `update_game` | `yes2sdk-upload`, `/upload` (on request) |
+| `set_game_image` | `yes2sdk-upload`, `/upload` (on request) |
+| `rename_build` | `yes2sdk-upload`, `/upload` (on request) |
 
-The last five are the dashboard tools. They need your API key (see
-[Dashboard API key](#dashboard-api-key-for-uploads-only)); without it they return setup
-steps and call nothing.
+The last eight are the dashboard tools. They need your API key (see
+[Dashboard API key](#dashboard-api-key-for-the-dashboard-tools-only)); without it they
+return setup steps and call nothing. The last three edit a game's profile or rename a
+build, and the skill offers them only when you ask. `set_game_image` returns a `curl`
+command that sends the image from your machine and reads `$YES2_API_KEY` from your
+shell, so neither the image nor the key passes through the chat or the MCP.
 
 The server's MCP **prompts** (`integrate_module`, `setup_new_project`) and
 **resources** (`yes2sdk://modules`, `yes2sdk://docs/{module}`) are intentionally not
@@ -169,8 +176,9 @@ This plugin is built against `yes2sdk` MCP server **0.3.2** and expects
 `metadata.mcpServer`. The hosted server is upgraded in place, so no action is
 normally needed, and the plugin does not check the range at runtime.
 
-The upload tools (`list_games`, `create_game`, `prepare_upload`, `finalize_upload`,
-`get_build_status`) are newer than that version. On a server without them, `/upload`
+The dashboard tools (`list_games`, `create_game`, `prepare_upload`, `finalize_upload`,
+`get_build_status`, `update_game`, `set_game_image`, `rename_build`) are newer than
+that version. On a server without them, `/upload`
 stops at its first step because `yes2sdk:list_games` does not exist.
 
 You notice a mismatch as a symptom, not a version number: a `/verify-*` or

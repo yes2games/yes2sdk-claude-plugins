@@ -15,6 +15,9 @@ allowed-tools:
   - mcp__yes2sdk__prepare_upload
   - mcp__yes2sdk__finalize_upload
   - mcp__yes2sdk__get_build_status
+  - mcp__yes2sdk__update_game
+  - mcp__yes2sdk__set_game_image
+  - mcp__yes2sdk__rename_build
   - mcp__yes2sdk__validate_integration
 disable-model-invocation: true
 ---
