@@ -6,6 +6,11 @@ All notable changes to this plugin. Format follows
 
 ## [Unreleased]
 
+### Changed
+
+- `metadata.mcpServer` now records MCP server `0.4.0` (`>=0.4.0 <1.0.0`), the first npm
+  release with the dashboard tools. The README's MCP server version section says the same.
+
 ## [0.6.0] - 2026-10-26
 
 Sign-in becomes the default way the dashboard tools act as you. It is opt-in: say

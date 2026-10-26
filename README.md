@@ -195,15 +195,16 @@ agent invoke `yes2sdk-install` and `yes2sdk-verify` rather than restating them, 
 
 ### MCP server version
 
-This plugin is built against `yes2sdk` MCP server **0.3.2** and expects
-`>=0.3.2 <1.0.0`, recorded in `.claude-plugin/plugin.json` under
+This plugin is built against `yes2sdk` MCP server **0.4.0** and expects
+`>=0.4.0 <1.0.0`, recorded in `.claude-plugin/plugin.json` under
 `metadata.mcpServer`. The hosted server is upgraded in place, so no action is
 normally needed, and the plugin does not check the range at runtime.
 
 The dashboard tools (`list_games`, `create_game`, `prepare_upload`, `finalize_upload`,
 `get_build_status`, `update_game`, `set_game_image`, `finalize_image_upload`,
-`rename_build`) and `sign_in` are newer than
-that version. On a server without them, `/upload`
+`rename_build`) first shipped on npm in 0.4.0. `sign_in` exists only on the hosted
+server; the local stdio server uses `YES2_API_KEY` instead. On a server without the
+dashboard tools, `/upload`
 stops at its first step because `yes2sdk:list_games` does not exist.
 
 You notice a mismatch as a symptom, not a version number: a `/verify-*` or
