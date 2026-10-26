@@ -33,18 +33,19 @@ the result.
 ## Conventions
 
 - Kebab-case filename matching the slash-command name. Skill dir name == frontmatter `name`.
-- All 20 MCP tools are fronted; the README's coverage table is the map. Install path:
+- All 21 MCP tools are fronted; the README's coverage table is the map. Install path:
   `detect_sdk`, `get_install_instructions`. Docs: `search_docs`, `get_quickstart`,
   `get_api_reference`, `list_sdk_modules`. Compliance: `get_platform_requirements`,
   `get_compliance_rule`, `get_platform_capabilities`, `validate_integration`. Symptoms:
-  `troubleshoot`. Dashboard upload: `list_games`, `create_game`, `prepare_upload`,
+  `troubleshoot`. Dashboard upload: `sign_in`, `list_games`, `create_game`, `prepare_upload`,
   `finalize_upload`, `get_build_status`. Dashboard edit (offered by `yes2sdk-upload`
   only on request): `update_game`, `set_game_image`, `finalize_image_upload`, `rename_build`. Adding a tool to the server means adding it to a
   skill AND that table.
-- **The nine dashboard tools act as the user**: signed in through Claude Code
-  (`/mcp` → Authenticate, the default) or with the optional API key `.mcp.json` sends
-  from `YES2_API_KEY` (see `marketplace.md`). Without either they ask the user to sign
-  in, so the presence check is a call to `list_games`, never a look at the variable. No
+- **The dashboard tools act as the user**: signed in (opt-in: the `sign_in` tool opens
+  the browser approval, or `/mcp` → Authenticate) or with the optional API key
+  `.mcp.json` sends from `YES2_API_KEY` (see `marketplace.md`). Without either they
+  reply that the user is not signed in (a normal tool result, never a 401), and the
+  skill then calls `sign_in`, so the presence check is a call to `list_games`, never a look at the variable. No
   file here may print, echo or `grep` the key, put it in a command, or ask the user to
   paste a key or token.
   `prepare_upload` returns a `curl` PUT that runs on the user's machine; run it exactly

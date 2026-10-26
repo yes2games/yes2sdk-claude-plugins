@@ -6,26 +6,28 @@ All notable changes to this plugin. Format follows
 
 ## [Unreleased]
 
-## [0.6.0] - 2026-10-24
+## [0.6.0] - 2026-10-26
 
-Sign-in becomes the default way the dashboard tools act as you: run `/mcp` →
-Authenticate when the first dashboard tool asks. `YES2_API_KEY` is now optional, for CI
+Sign-in becomes the default way the dashboard tools act as you. It is opt-in: say
+"sign in to Yes2" (the `sign_in` tool) or run `/mcp` → Authenticate. The docs and
+validation tools never need it. `YES2_API_KEY` is now optional, for CI
 and headless use. Also adds editing a game from the upload flow.
 
-Needs the dashboard's OAuth sign-in and the MCP's lazy sign-in gate to be live.
+Needs the MCP's opt-in sign-in (yes2sdk-mcp#110) and the dashboard's OAuth sign-in.
 
 ### Added
 
-- Sign-in through Claude Code's MCP OAuth. The dashboard tools no longer need a key:
-  the first call asks the user to run `/mcp` → `yes2sdk` → **Authenticate** and approve
-  in the browser. The docs and validation tools never ask. The README covers the
+- Sign-in through Claude Code's MCP OAuth. The dashboard tools no longer need a key.
+  Without one they reply that the user is not signed in; `sign_in` (or `/mcp` →
+  `yes2sdk` → **Authenticate**) opens the approval in the browser. The docs and
+  validation tools never need it. The README covers the
   approval page, revoking under **Settings → Connected apps**, and preview accounts.
-- `update_game`, `set_game_image`, `finalize_image_upload` and `rename_build` in the
-  README coverage table (20 tools), the authoring rules and the `allowed-tools` of
+- `sign_in`, `update_game`, `set_game_image`, `finalize_image_upload` and
+  `rename_build` in the README coverage table (21 tools), the authoring rules and the `allowed-tools` of
   `yes2sdk-upload` and `/upload`. After a build is ready, the skill can offer to rename
   it or edit the game's details, icon or banner, only when the user asks.
-- `yes2sdk-upload` handles a sign-in-required answer (tell the user to run `/mcp` →
-  Authenticate, then retry), `INSUFFICIENT_SCOPE`, and a preview account's
+- `yes2sdk-upload` handles a not-signed-in reply (call `sign_in`, which opens the
+  browser for the user, then retry), `INSUFFICIENT_SCOPE`, and a preview account's
   `game_limit_reached` and `build_limit_reached`.
 
 ### Changed

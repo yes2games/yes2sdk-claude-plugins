@@ -10,6 +10,7 @@ allowed-tools:
   - Bash(zip:*)
   - Bash(unzip -l:*)
   - Bash(stat:*)
+  - mcp__yes2sdk__sign_in
   - mcp__yes2sdk__list_games
   - mcp__yes2sdk__create_game
   - mcp__yes2sdk__prepare_upload
@@ -32,9 +33,11 @@ final report.
 The plugin wraps the `yes2sdk` MCP, which does the real work. The dashboard tools
 act as the user, in one of two ways:
 
-- **Sign-in (the default).** The user signs in to the dashboard once through Claude
-  Code (`/mcp` → `yes2sdk` → **Authenticate**), and Claude Code sends the resulting
-  token itself. Nothing to set up beforehand: the first dashboard tool call asks.
+- **Sign-in (the default, opt-in).** Calling `yes2sdk:sign_in` opens the dashboard's
+  approval page in the user's browser (or they run `/mcp` → `yes2sdk` →
+  **Authenticate**), and Claude Code then sends the resulting token itself. Until
+  then the dashboard tools just reply that the user is not signed in; the docs and
+  validation tools never need sign-in.
 - **An API key (optional, for CI and headless use).** If `YES2_API_KEY` is set, this
   plugin's `.mcp.json` sends it as `X-Yes2-Api-Key: ${YES2_API_KEY:-}`; unset, the
   header goes out empty, which the server treats as no key.
@@ -58,20 +61,19 @@ user's machine straight to storage.
 ## Procedure
 
 1. **Check the sign-in.** Call `yes2sdk:list_games`.
-   - **Sign-in required.** If the call fails because the `yes2sdk` server needs the
-     user to sign in or authenticate (Claude Code says to run `/mcp`), or it answers
-     with setup steps, stop and tell the user: run `/mcp`, pick `yes2sdk`, choose
-     **Authenticate**, and approve in the browser that opens. The approval page shows
-     the account the app will act as: their studio, or their personal games on a
-     preview account. Then wait for them and call `yes2sdk:list_games` again. Only
-     the dashboard tools need this; the docs and validation tools keep working.
+   - **Not signed in.** If it replies that the user is not signed in to Yes2, call
+     `yes2sdk:sign_in`. Claude Code opens the approval page in the user's browser;
+     tell them to approve there (it shows the account the app will act as: their
+     studio, or their personal games on a preview account), wait for them, then call
+     `yes2sdk:list_games` again. If no browser opens, they can run `/mcp`, pick
+     `yes2sdk` and choose **Authenticate**. Only the dashboard tools need this; the
+     docs and validation tools keep working.
    - **`INVALID_API_KEY` or a sign-in that stopped working.** If they use a key, it
      was revoked or mistyped: create a new one. If they signed in, the connection was
-     revoked or expired, or their seat changed: run `/mcp` → `yes2sdk` →
-     **Authenticate** again.
+     revoked or expired, or their seat changed: call `yes2sdk:sign_in` again.
    - **`INSUFFICIENT_SCOPE`.** The credential lacks a permission this procedure
-     needs. Ask them to sign in again (`/mcp` → **Authenticate**) and approve every
-     permission, or to use a key with all scopes.
+     needs. Call `yes2sdk:sign_in` so they can sign in again and approve every
+     permission, or ask them to use a key with all scopes.
    - **No browser (CI, a remote shell).** Offer the key instead: a personal key under
      avatar, **Settings → Personal API keys** (or a team key from the **Team** page),
      added as `export YES2_API_KEY=y2g_…` to their shell profile (`~/.zshrc`,

@@ -10,6 +10,7 @@ allowed-tools:
   - Bash(zip:*)
   - Bash(unzip -l:*)
   - Bash(stat:*)
+  - mcp__yes2sdk__sign_in
   - mcp__yes2sdk__list_games
   - mcp__yes2sdk__create_game
   - mcp__yes2sdk__prepare_upload
