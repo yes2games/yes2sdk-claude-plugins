@@ -30,8 +30,8 @@
     "mcpServer": {
       "name": "yes2sdk",
       "url": "https://mcp.yes2games.com/mcp",
-      "builtAgainst": "0.3.2",
-      "compatible": ">=0.3.2 <1.0.0"
+      "builtAgainst": "0.4.0",
+      "compatible": ">=0.4.0 <1.0.0"
     }
   }
 }
