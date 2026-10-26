@@ -45,8 +45,9 @@ Claude Code keeps the sign-in and refreshes it on its own. To disconnect it, ope
 dashboard (avatar → **Settings → Connected apps**) and **Revoke** it.
 
 Sign-in needs an owner, manager or developer seat in a studio, or a preview account with
-no studio yet. A preview account works with its usual limits (3 games, 1 build each until
-the account is verified), and the tools say so when you reach one.
+no studio yet. A preview account works with its usual limits until the account is
+verified: unlimited games; one build per game, and a new upload replaces the previous one
+unless that build is in review or live. The tools say so when an upload can't go through.
 
 ### API key (optional, for CI and headless use)
 
