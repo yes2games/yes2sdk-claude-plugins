@@ -10,6 +10,7 @@ allowed-tools:
   - Bash(zip:*)
   - Bash(unzip -l:*)
   - Bash(stat:*)
+  - mcp__yes2sdk__sign_in
   - mcp__yes2sdk__list_games
   - mcp__yes2sdk__create_game
   - mcp__yes2sdk__prepare_upload
@@ -17,6 +18,7 @@ allowed-tools:
   - mcp__yes2sdk__get_build_status
   - mcp__yes2sdk__update_game
   - mcp__yes2sdk__set_game_image
+  - mcp__yes2sdk__finalize_image_upload
   - mcp__yes2sdk__rename_build
   - mcp__yes2sdk__validate_integration
 disable-model-invocation: true

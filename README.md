@@ -25,11 +25,33 @@ Installing registers the `yes2sdk` MCP server (remote HTTP,
 `https://mcp.yes2games.com/mcp`) and adds the components below. Run `/mcp` to confirm
 the server is connected.
 
-## Dashboard API key (for the dashboard tools only)
+## Sign in to the dashboard (for the dashboard tools only)
 
-Everything except the dashboard tools works with no key. To upload builds to the Yes2
-dashboard with `/upload`, or to edit a game there, give the plugin your own dashboard API
-key:
+Signing in is opt-in, and only the dashboard tools need it: the docs, rules and
+validation tools never do. Until you sign in, a dashboard tool just replies that you're
+not signed in. To upload builds to the Yes2 dashboard with `/upload`, or to edit a game
+there, sign in once with your dashboard account:
+
+1. Say **"sign in to Yes2"** (or let `/upload` do it when it finds you're not signed in).
+   Claude calls the `sign_in` tool and your browser opens the dashboard; log in if
+   needed. You can also run `/mcp`, pick `yes2sdk` and choose **Authenticate**.
+2. The approval page shows which app is asking, the account it will act as (your
+   studio and role, or your personal games on a preview account) and what it may do:
+   see your games and builds, create and edit games, upload builds. It cannot publish,
+   download builds, or see analytics, revenue or your team. Approve, then go back to
+   Claude Code. Asking "am I signed in to Yes2?" shows the account and studio in use.
+
+Claude Code keeps the sign-in and refreshes it on its own. To disconnect it, open the
+dashboard (avatar → **Settings → Connected apps**) and **Revoke** it.
+
+Sign-in needs an owner, manager or developer seat in a studio, or a preview account with
+no studio yet. A preview account works with its usual limits until the account is
+verified: unlimited games; one build per game, and a new upload replaces the previous one
+unless that build is in review or live. The tools say so when an upload can't go through.
+
+### API key (optional, for CI and headless use)
+
+Where nobody can approve in a browser, give the plugin a dashboard API key instead:
 
 1. Create a key on the dashboard: a personal key under your avatar, **Settings →
    Personal API keys**, or a team key from the **Team** page.
@@ -41,13 +63,13 @@ key:
    ```
 
 3. Open a new terminal and start Claude Code from it. The plugin's `.mcp.json` sends
-   the key to the `yes2sdk` server as `Authorization: Bearer ${YES2_API_KEY:-}` on each
+   the key to the `yes2sdk` server as `X-Yes2-Api-Key: ${YES2_API_KEY:-}` on each
    request; the server passes it to the dashboard for that request only and never
    stores it.
 
-Without the variable the header goes out as a bare `Bearer`, which the server treats
-as no key: the docs and validation tools work as before, and the dashboard tools answer with these setup steps instead. Claude never needs
-to see the key, so do not paste it into the chat.
+Without the variable the header goes out empty, which the server treats as no key. The plugin deliberately does not use an `Authorization` header: in
+Claude Code a configured `Authorization` header turns off sign-in for that server.
+Claude never needs to see the key, so do not paste it into the chat.
 
 Uploading puts a build on the dashboard, where you can open it in the Inspector. It
 does not publish anything: publishing to platforms is requested on the dashboard and
@@ -68,7 +90,7 @@ You type these.
 | `/verify-youtube [buildPath]` | YouTube Playables compliance + static checks (strictest). |
 | `/verify-jest [buildPath]` | Jest universal checks, plus Jest's manual launch checklist listed as not yet checked. |
 | `/yes2sdk-docs <query>` | Search the Yes2SDK docs. |
-| `/upload [buildPath]` | Build (JS/TS), zip and upload a build to the Yes2 dashboard with your API key, then return its Inspector link. Needs `YES2_API_KEY` (see above). |
+| `/upload [buildPath]` | Build (JS/TS), zip and upload a build to the Yes2 dashboard, then return its Inspector link. Offers to sign you in if you aren't (see above). |
 
 ```
 /integrate-all poki
@@ -114,7 +136,7 @@ when you want the per-platform reports triaged rather than printed.
 
 ## MCP tool coverage
 
-All 19 `yes2sdk` MCP tools are reachable:
+All 21 `yes2sdk` MCP tools are reachable:
 
 | Tool | Fronted by |
 |---|---|
@@ -129,6 +151,7 @@ All 19 `yes2sdk` MCP tools are reachable:
 | `troubleshoot` | `yes2sdk-diagnose` |
 | `get_platform_capabilities` | `yes2sdk-diagnose` |
 | `list_sdk_modules` | `yes2sdk-diagnose` |
+| `sign_in` | `yes2sdk-upload`, `/upload` |
 | `list_games` | `yes2sdk-upload`, `/upload` |
 | `create_game` | `yes2sdk-upload`, `/upload` |
 | `prepare_upload` | `yes2sdk-upload`, `/upload` |
@@ -136,14 +159,15 @@ All 19 `yes2sdk` MCP tools are reachable:
 | `get_build_status` | `yes2sdk-upload`, `/upload` |
 | `update_game` | `yes2sdk-upload`, `/upload` (on request) |
 | `set_game_image` | `yes2sdk-upload`, `/upload` (on request) |
+| `finalize_image_upload` | `yes2sdk-upload`, `/upload` (on request) |
 | `rename_build` | `yes2sdk-upload`, `/upload` (on request) |
 
-The last eight are the dashboard tools. They need your API key (see
-[Dashboard API key](#dashboard-api-key-for-the-dashboard-tools-only)); without it they
-return setup steps and call nothing. The last three edit a game's profile or rename a
-build, and the skill offers them only when you ask. `set_game_image` returns a `curl`
-command that sends the image from your machine and reads `$YES2_API_KEY` from your
-shell, so neither the image nor the key passes through the chat or the MCP.
+The last ten are the dashboard tools, `sign_in` first. The rest need you to sign in, or an API key (see
+[Sign in to the dashboard](#sign-in-to-the-dashboard-for-the-dashboard-tools-only)).
+The last four edit a game's profile or rename a build, and the skill offers them only
+when you ask. `set_game_image` returns a `curl` PUT that sends the image from your
+machine straight to storage with no credential in it, and `finalize_image_upload` then
+sets it, so the image never passes through the chat or the MCP.
 
 The server's MCP **prompts** (`integrate_module`, `setup_new_project`) and
 **resources** (`yes2sdk://modules`, `yes2sdk://docs/{module}`) are intentionally not
@@ -177,7 +201,8 @@ This plugin is built against `yes2sdk` MCP server **0.3.2** and expects
 normally needed, and the plugin does not check the range at runtime.
 
 The dashboard tools (`list_games`, `create_game`, `prepare_upload`, `finalize_upload`,
-`get_build_status`, `update_game`, `set_game_image`, `rename_build`) are newer than
+`get_build_status`, `update_game`, `set_game_image`, `finalize_image_upload`,
+`rename_build`) and `sign_in` are newer than
 that version. On a server without them, `/upload`
 stops at its first step because `yes2sdk:list_games` does not exist.
 
@@ -192,8 +217,8 @@ command and the error text.
 the MCP locally instead, register your local server (e.g.
 `http://127.0.0.1:8091/mcp`) in your own MCP config; the slash commands work
 against any server named `yes2sdk`. For uploads, give that entry the same
-`"headers": { "Authorization": "Bearer ${YES2_API_KEY:-}" }` (local HTTP), or put
-`YES2_API_KEY` in its `env` (stdio).
+`"headers": { "X-Yes2-Api-Key": "${YES2_API_KEY:-}" }` (local HTTP), or put
+`YES2_API_KEY` in its `env` (stdio). A local server does not offer sign-in.
 
 ### Running the MCP on your own machine
 
